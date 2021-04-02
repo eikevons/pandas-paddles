@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "pandas_selector"
+version = "0.1.0-dev"
+description = "Simple column selector for loc[], iloc[], assign and others."
+authors = ["Eike von Seggern <eike@vonseggern.space>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pandas = "^1.2.3"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2"
+pytest-watch = "^4.2.0"
+sphinx = "^3.3.0"
+sphinxcontrib-fulltoc = "^1.2.0"
+ipython = "^7.22.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
