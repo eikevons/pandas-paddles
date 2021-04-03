@@ -13,7 +13,7 @@ pytest = "^6.2"
 pytest-watch = "^4.2.0"
 sphinx = "^3.3.0"
 sphinxcontrib-fulltoc = "^1.2.0"
-ipython = "^7.22.0"
+pytest-cov = "^2.11.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

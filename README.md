@@ -1,6 +1,16 @@
 # Pandas Accessors
 
-Simple column selector for loc[], iloc[], assign and others.
+Simple column selector for ``loc[]``, ``iloc[]``, ``assign()`` and others.
+
+# Similar projects
+
+- [pandas-ply](https://github.com/coursera/pandas-ply)
+  - (-) stale(?), last change 6 years ago
+  - (-) new API to learn
+  - (-) ``Symbol`` / ``pandas_ply.X`` works only with ``ply_*`` functions
+- [pandas-select](https://pandas-select.readthedocs.io/en/latest/reference/label_selection.html)
+  - (+) no explicite `df` necessary
+  - (-) new API to learn
 
 # Development
 

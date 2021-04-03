@@ -1,18 +1,20 @@
-IMAGE_NAME := pandas_selector
+PACKAGE_NAME :=  pandas_selector
+IMAGE_NAME := $(PACKAGE_NAME)
 DEV_IMAGE_NAME := $(IMAGE_NAME)-dev
 
 # Filter tests to run:
 # make TESTS="pattern" test
 TESTS :=
+PYTEST_ARGS := --cov=/app/$(PACKAGE_NAME) -p no:cacheprovider -k "$(TESTS)" /app/tests
 
 help:
 	@echo "Provided targets"
 	@echo "image      build prod image"
 	@echo "devimage   build development image"
 	@echo "shell      start shell in development image"
-	@echo "test       run unit tests. Use make TESTS=... to filter tests."
-	@echo "watch      run unit tests on every change. Use make TESTS=... to filter tests."
-	@echo "docs       create documentation"
+	@echo "test       run unit tests. Use make TESTS=... to filter tests"
+	@echo "watch      run unit tests on every change. Use make TESTS=... to filter tests"
+	@echo "docs       create documentation."
 	@echo "TODO:"
 	@echo "format"
 	@echo "wheel"
@@ -51,16 +53,19 @@ test: devimage
 	docker run --rm -ti \
 	    --name $(DEV_IMAGE_NAME)-$@ \
 	    --volume "$(PWD):/app:ro" \
+	    --env "HOME=/tmp/home" \
+	    -w /tmp/home \
 	    $(DEV_IMAGE_NAME) \
-	    pytest -p no:cacheprovider -k "$(TESTS)" /app/tests
+	    pytest $(PYTEST_ARGS)
 
 watch: devimage
 	docker run --rm -ti \
 	    --name $(DEV_IMAGE_NAME)-$@ \
 	    --volume "$(PWD):/app:ro" \
 	    --env "HOME=/tmp/home" \
+	    -w /tmp/home \
 	    $(DEV_IMAGE_NAME) \
-	    pytest-watch pandas_selector tests -- -k "$(TESTS)" /app/tests
+	    pytest-watch /app/$(PACKAGE_NAME) /app/tests -- $(PYTEST_ARGS)
 
 
 docs: devimage
@@ -76,3 +81,4 @@ docs: devimage
 	    --workdir /app \
 	    $(DEV_IMAGE_NAME) \
 	    make -C /app/docs html
+
