@@ -1,10 +1,25 @@
-Pandas Accessors
+Pandas Selectors
 ================
 
-Simple column selector for ``loc[]``, ``iloc[]``, ``assign()`` and others.
+Simple column selectors for ``loc[]``, ``iloc[]``, ``assign()`` and others.
 
-Smilar projects
-===============
+Motivation
+==========
+
+**TODO:**
+
+* Pyspark's ``spark.sql.functions.col``.
+* Lazy evaluation with ``dplyr`` in R.
+
+
+Examples
+========
+
+**TODO**
+
+
+Smilar projects for pandas
+==========================
 
 * `pandas-ply <https://github.com/coursera/pandas-ply>`_
 
@@ -20,7 +35,6 @@ Smilar projects
 * `pandas-selectable <https://github.com/jseabold/pandas-selectable>`_
 
   * (+) simple ``select`` accessor
-  * (?) composable?
   * (-) usage inside chains clumsy (needs explicite ``df``)::
 
       ((df
@@ -29,6 +43,7 @@ Smilar projects
       )
 
   * (-) hard-coded ``str``, ``dt`` accessor methods
+  * (?) composable?
 
 Development
 ===========
