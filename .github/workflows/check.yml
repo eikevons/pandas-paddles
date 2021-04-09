@@ -1,0 +1,42 @@
+# This file is based on example codes from https://github.com/actions/setup-python (released under the MIT license).
+on:
+  # Run tests on all pushes to main and on all commits to PRs to all branches
+  push:
+    branches: 
+      - 'main'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        # Pandas requires Python >= 3.7
+        python-version: [3.7, 3.8]
+        pandas-version: [0.24, 1.0, 1.1]
+
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry and requirements
+        run: |
+          pip install poetry
+          poetry config virtualenvs.create false
+          poetry install --no-root
+
+      - name: Install specified pandas version
+        run: |
+          pip install "pandas==${{ matrix.pandas-version }}.*"
+
+      - name: Run unit tests
+        run: |
+          pytest tests/
