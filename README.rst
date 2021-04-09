@@ -1,6 +1,7 @@
 Pandas Selector
 ===============
 
+
 Simple column selector for ``loc[]``, ``iloc[]``, ``assign()`` and others.
 
 Motivation
@@ -15,9 +16,11 @@ function or referencing columns in R's
 Example: Create new column and filter
 -------------------------------------
 
-Instead of writing "traditional" Pandas like this::
+Instead of writing "traditional" Pandas like this:
 
-    >>> df_in = pd.DataFrame({"x": range(5)})
+.. code-block:: python
+
+    df_in = pd.DataFrame({"x": range(5)})
     df = df_in.assign(y = df_in.x // 2)
     df = df.loc[df.y <= 1]
     df
@@ -27,19 +30,23 @@ Instead of writing "traditional" Pandas like this::
     # 2  2  1
     # 3  3  1
 
-One can write::
+One can write:
 
-   from pandas_selector import DF
-   df = (df_in
-         .assign(y = DF.x // 2)
-         .loc[DF.y <= 1]
-        )
+.. code-block:: python
+
+    from pandas_selector import DF
+    df = (df_in
+          .assign(y = DF.x // 2)
+          .loc[DF.y <= 1]
+         )
 
 This is especially handy when re-iterating on data frame manipulations
 interactively, e.g. in a notebook.
 
 But you can access all methods and attributes of the data frame from the
-context::
+context:
+
+.. code-block:: python
 
     df = pd.DataFrame({
         "X": range(5),
@@ -74,12 +81,14 @@ Smilar projects for pandas
 * `pandas-selectable <https://github.com/jseabold/pandas-selectable>`_
 
   * (+) simple ``select`` accessor
-  * (-) usage inside chains clumsy (needs explicite ``df``)::
+  * (-) usage inside chains clumsy (needs explicite ``df``):
 
-      ((df
-        .select.A == 'a')
-        .select.B == 'b'
-      )
+    .. code-block:: python
+
+       ((df
+         .select.A == 'a')
+         .select.B == 'b'
+       )
 
   * (-) hard-coded ``str``, ``dt`` accessor methods
   * (?) composable?
