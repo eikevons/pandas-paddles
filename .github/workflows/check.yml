@@ -9,11 +9,11 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         # Pandas requires Python >= 3.7
-        python-version: [3.6, 3.7, 3.8, 3.9]
-        pandas-version: [1.0, 1.1, 1.2]
+        python-version: ["3.6", "3.7", "3.8", "3.9"]
+        pandas-version: ["1.0", "1.1", "1.2"]
         exclude:
-          - pandas-version: 1.2
-            python-version: 3.6
+          - pandas-version: "1.2"
+            python-version: "3.6"
     steps:
       - uses: actions/checkout@v2
 
