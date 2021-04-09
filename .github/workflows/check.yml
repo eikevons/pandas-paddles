@@ -5,6 +5,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 1
       matrix:
         os: [ubuntu-latest]
         # Pandas requires Python >= 3.7
@@ -28,6 +29,8 @@ jobs:
         run: |
           pip install poetry
           poetry config virtualenvs.create false
+          # Remove poetry.lock to allow installing different versions of pandas
+          rm poetry.lock
           poetry install --no-root
 
       - name: Install specified pandas version
