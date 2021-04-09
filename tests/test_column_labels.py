@@ -8,9 +8,9 @@ from pandas_selector import DF
 def df():
     return pd.DataFrame(
         {
-            "x": 1,
-            "y": 2,
-            "z": 3,
+            "x": [1],
+            "y": [2],
+            "z": [3],
             },
         index=[1],
         )
