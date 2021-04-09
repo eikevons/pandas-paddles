@@ -1,22 +1,61 @@
-Pandas Selectors
-================
+Pandas Selector
+===============
 
-Simple column selectors for ``loc[]``, ``iloc[]``, ``assign()`` and others.
+Simple column selector for ``loc[]``, ``iloc[]``, ``assign()`` and others.
 
 Motivation
-==========
+----------
 
-**TODO:**
+Make chaining Pandas operations easier and bring functionality to Pandas
+similar to Spark's
+`col() <https://spark.apache.org/docs/latest/api/python/reference/api/pyspark.sql.functions.col.html#pyspark.sql.functions.col>`_
+function or referencing columns in R's
+`dplyr <https://dplyr.tidyverse.org/articles/dplyr.html>`_.
 
-* Pyspark's ``spark.sql.functions.col``.
-* Lazy evaluation with ``dplyr`` in R.
+Example: Create new column and filter
+-------------------------------------
 
+Instead of writing "traditional" Pandas like this::
 
-Examples
-========
+    >>> df_in = pd.DataFrame({"x": range(5)})
+    df = df_in.assign(y = df_in.x // 2)
+    df = df.loc[df.y <= 1]
+    df
+    #    x  y
+    # 0  0  0
+    # 1  1  0
+    # 2  2  1
+    # 3  3  1
 
-**TODO**
+One can write::
 
+   from pandas_selector import DF
+   df = (df_in
+         .assign(y = DF.x // 2)
+         .loc[DF.y <= 1]
+        )
+
+This is especially handy when re-iterating on data frame manipulations
+interactively, e.g. in a notebook.
+
+But you can access all methods and attributes of the data frame from the
+context::
+
+    df = pd.DataFrame({
+        "X": range(5),
+        "Y": ["1", "a", "c", "D", "e"],
+    })
+    df.loc[DF.y.str.isupper() | DF.y.str.isnumeric()]
+    #    X  y
+    # 0  0  1
+    # 3  3  D
+    df.loc[:, DF.columns.str.isupper()]
+    #    X
+    # 0  0
+    # 1  1
+    # 2  2
+    # 3  3
+    # 4  4
 
 Smilar projects for pandas
 ==========================
