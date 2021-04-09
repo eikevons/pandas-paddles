@@ -5,7 +5,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 1
       matrix:
         os: [ubuntu-latest]
         # Pandas requires Python >= 3.7
