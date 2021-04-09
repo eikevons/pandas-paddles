@@ -5,7 +5,7 @@ description = "Simple column selector for loc[], iloc[], assign and others."
 authors = ["Eike von Seggern <eike@vonseggern.space>"]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.6.1"
 pandas = "^1"
 
 [tool.poetry.dev-dependencies]
