@@ -5,8 +5,8 @@ description = "Simple column selector for loc[], iloc[], assign and others."
 authors = ["Eike von Seggern <eike@vonseggern.space>"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
-pandas = "^1.2.3"
+python = "^3.6.1"
+pandas = "^1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2"

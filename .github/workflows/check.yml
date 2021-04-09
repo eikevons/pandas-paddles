@@ -1,12 +1,5 @@
 # This file is based on example codes from https://github.com/actions/setup-python (released under the MIT license).
-on:
-  # Run tests on all pushes to main and on all commits to PRs to all branches
-  push:
-    branches: 
-      - 'main'
-  pull_request:
-    branches:
-      - '**'
+on: [push]
 
 jobs:
   build:
@@ -15,10 +8,11 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         # Pandas requires Python >= 3.7
-        python-version: [3.7, 3.8]
-        pandas-version: [0.24, 1.0, 1.1]
-
-
+        python-version: ["3.6", "3.7", "3.8", "3.9"]
+        pandas-version: ["1.0", "1.1", "1.2"]
+        exclude:
+          - pandas-version: "1.2"
+            python-version: "3.6"
     steps:
       - uses: actions/checkout@v2
 
@@ -31,6 +25,8 @@ jobs:
         run: |
           pip install poetry
           poetry config virtualenvs.create false
+          # Remove poetry.lock to allow installing different versions of pandas
+          rm poetry.lock
           poetry install --no-root
 
       - name: Install specified pandas version
