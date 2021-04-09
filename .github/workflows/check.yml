@@ -1,11 +1,8 @@
 # This file is based on example codes from https://github.com/actions/setup-python (released under the MIT license).
 on:
-  # Run tests on all pushes to main and on all commits to PRs to all branches
+  # Run tests on all pushes
   push:
     branches: 
-      - 'main'
-  pull_request:
-    branches:
       - '**'
 
 jobs:
@@ -16,8 +13,11 @@ jobs:
         os: [ubuntu-latest]
         # Pandas requires Python >= 3.7
         python-version: [3.7, 3.8]
-        pandas-version: [0.24, 1.0, 1.1]
-
+        include:
+          - python-version: 3.7
+            pandas-version: [0.24, 1.0, 1.1]
+          - python-version: 3.8
+            pandas-version: [1.0, 1.1]
 
     steps:
       - uses: actions/checkout@v2
