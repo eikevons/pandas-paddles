@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pandas_selector"
-version = "0.1.0-dev"
+version = "0.1.0"
 description = "Simple column selector for loc[], iloc[], assign and others."
 authors = ["Eike von Seggern <eike@vonseggern.space>"]
 

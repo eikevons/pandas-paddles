@@ -3,3 +3,4 @@ docs/source/api
 *.vscode
 *.stamp
 __pycache__/
+dist/
