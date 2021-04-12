@@ -1,8 +1,7 @@
 Pandas Selector
 ===============
 
-
-Simple column selector for ``loc[]``, ``iloc[]``, ``assign()`` and others.
+Simple, composable column selector for ``loc[]``, ``iloc[]``, ``assign()`` and others.
 
 Motivation
 ----------
@@ -12,6 +11,12 @@ similar to Spark's
 `col() <https://spark.apache.org/docs/latest/api/python/reference/api/pyspark.sql.functions.col.html#pyspark.sql.functions.col>`_
 function or referencing columns in R's
 `dplyr <https://dplyr.tidyverse.org/articles/dplyr.html>`_.
+
+Installation
+------------
+
+Install from PyPI with ``pip install pandas-selector``. Pandas versions 
+1.0+ (``^1.0``) are supported.
 
 Example: Create new column and filter
 -------------------------------------

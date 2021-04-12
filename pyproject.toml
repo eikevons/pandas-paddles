@@ -1,8 +1,23 @@
 [tool.poetry]
 name = "pandas_selector"
-version = "0.1.0"
-description = "Simple column selector for loc[], iloc[], assign and others."
-authors = ["Eike von Seggern <eike@vonseggern.space>"]
+version = "0.1.1-dev"
+description = "Simple, composable column selector for loc[], iloc[], assign() and others."
+authors = ["Eike von Seggern <eikevons@mailbox.org>"]
+repository = "https://github.com/eikevons/pandas-selector.git"
+readme = "README.rst"
+license = "MIT"
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.6",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Topic :: Scientific/Engineering"
+]
 
 [tool.poetry.dependencies]
 python = "^3.6.1"
