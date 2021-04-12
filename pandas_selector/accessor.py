@@ -215,4 +215,4 @@ class DataframeAccessor:
             return obj
 
         # Create a new DataframeAccessor
-        return DataframeAccessor(self._levels[:-1] + (Function(self._levels[-1].name, *args, **kwargs),))
+        return DataframeAccessor(self._levels[:-1] + (Method(self._levels[-1].name, *args, **kwargs),))
