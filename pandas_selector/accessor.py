@@ -1,3 +1,4 @@
+"""Access wrappers for data frames members."""
 from typing import Callable, Optional, Sequence, Union
 
 import pandas as pd
@@ -6,24 +7,43 @@ import pandas as pd
 class WrapperBase:
     """Base class for wrapping attribute, item or operator access."""
     def __init__(self, name: str):
+        """
+        Parameters
+        ----------
+        name
+            Name of the accessed object member.
+        """
         self.name = name
 
     def __repr__(self):
         return f"<{type(self).__name__} {self.name}>"
 
-    def __call__(self, obj, root_df):
-        """
+    def __call__(self, obj, root_df: pd.DataFrame):
+        """Access member of wrapped object.
+
         Parameters
         ----------
         obj
             Typically the ``~pandas.DataFrame`` or ``~pandas.Series`` to act
             upon.
+        root_df
+            The original data frame from the context.
         """
         raise NotImplementedError("Must be implemented by a sub-class.")
 
 class Attribute(WrapperBase):
     """Wrap ``df.column_name`` or similar access patterns."""
     def __call__(self, obj, root_df):
+        """Access attribute of ``obj``.
+
+        Parameters
+        ----------
+        obj
+            Typically the ``~pandas.DataFrame`` or ``~pandas.Series`` to act
+            upon.
+        root_df
+            The original data frame from the context. (Unused)
+        """
         return getattr(obj, self.name)
 
     def __str__(self):
@@ -38,12 +58,15 @@ class Item(WrapperBase):
     def __str__(self):
         return f"[{self.name!r}]"
 
-class Function(WrapperBase):
-    """Wrap function calls.
+class Method(WrapperBase):
+    """Wrap method and operator calls.
 
     E.g.
-    - ``DF.x <= other`` or similar operator patterns
-    - ``DF.x.met."""
+
+    * ``DF.x <= other`` or similar operator patterns
+    * ``DF.x.method(...)``
+    * :code:`DF.x.method(1 + 'abc')`
+    """
     def __init__(self, name: str,
                  # this: "DataframeAccessor",
                  *args, **kwargs):
@@ -125,19 +148,29 @@ def _add_dunder_operators(cls):
 class DataframeAccessor:
     """Build callable for column access and operators.
 
-    This is useful in combination with :method:`~pandas.DataFrame.loc`,
-    :method:`~pandas.DataFrame.iloc`, :method:`~pandas.DataFrame.assign` and
+    Use the global instance like::
+
+        from pandas_selector import DF
+        df.loc[DF.x < 3]
+
+    All operations (item/attribute access, method calls) are passed to the
+    data frame of the context.
+
+    This is useful in combination with :attr:`~pandas.DataFrame.loc`,
+    :attr:`~pandas.DataFrame.iloc`, :meth:`~pandas.DataFrame.assign` and
     other methods that accept callables taking the data frame to act on as
     single argument.
 
     Examples
     --------
     Usage with ``loc`` or ``iloc``:
+
     >>> DF = DataframeAccessor()
     >>> df = pd.DataFrame({"x": [1, 2, 3, 4]})
     >>> df.loc[DF.x <= 2]
 
     Usage with ``assign()``:
+
     >>> df.assign(y = DF.x * 2)
     >>> df
     """
@@ -169,17 +202,15 @@ class DataframeAccessor:
         Used by :func:`_add_dunder_operators`
         """
         def op_wrapper(*args, **kwargs):
-            return DataframeAccessor(self._levels + (Function(op_name, *args, **kwargs),))
+            return DataframeAccessor(self._levels + (Method(op_name, *args, **kwargs),))
         return op_wrapper
 
     def __call__(self, *args, **kwargs):
         # Heuristic: Assume the selector is applied if exactly one DataFrame
         # argument is passed.
         if len(args) == 1 and isinstance(args[0], pd.DataFrame):
-            print('XXX')
             obj = root_df = args[0]
             for lvl in self._levels:
-                print(lvl)
                 obj = lvl(obj, root_df)
             return obj
 
