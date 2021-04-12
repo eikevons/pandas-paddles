@@ -1,12 +1,16 @@
 {{ fullname | escape | underline}}
 
-.. automodule:: {{ fullname }}
+Module summary
+--------------
 
+.. automodule:: {{ fullname }}
+  
    {% block attributes %}
    {% if attributes %}
-   .. rubric:: {{ _('Module Attributes') }}
+   .. rubric:: Module Attributes
 
    .. autosummary::
+      :toctree:
    {% for item in attributes %}
       {{ item }}
    {%- endfor %}
@@ -18,6 +22,7 @@
    .. rubric:: {{ _('Functions') }}
 
    .. autosummary::
+      :toctree:
    {% for item in functions %}
       {{ item }}
    {%- endfor %}
@@ -28,8 +33,8 @@
    {% if classes %}
    .. rubric:: {{ _('Classes') }}
 
-   .. autosummary::
    {% for item in classes %}
+   .. autosummary::
       {{ item }}
    {%- endfor %}
    {% endif %}
@@ -40,6 +45,7 @@
    .. rubric:: {{ _('Exceptions') }}
 
    .. autosummary::
+      :toctree:                                          <-- add this line
    {% for item in exceptions %}
       {{ item }}
    {%- endfor %}
@@ -52,6 +58,7 @@
 
 .. autosummary::
    :toctree:
+   :template: custom-module-template.rst                 <-- add this line
    :recursive:
 {% for item in modules %}
    {{ item }}
@@ -59,28 +66,43 @@
 {% endif %}
 {% endblock %}
 
-{% if functions or classes %}
-
 Details
 -------
 
-{% block function_details %}
-{% if functions %}
-   {% for item in functions %}
-
-.. autofunction:: {{ item }}
-
-   {%- endfor %}
-{% endif %}
-{% endblock %}
-
-{% block class_details %}
+{% block classedetails %}
 {% if classes %}
-   {% for item in classes %}
+.. rubric:: {{ _('Classes') }}
 
+{% for item in classes %}
 .. autoclass:: {{ item }}
+   :members:
+   :show-inheritance:
+   :inherited-members:
 
+   {% block methods %}
+   .. automethod:: __init__
+
+   {% if methods %}
+   .. rubric:: {{ _('Methods') }}
+
+   .. autosummary::
+   {% for item in methods %}
+      ~{{ name }}.{{ item }}
    {%- endfor %}
+   {% endif %}
+   {% endblock %}
+
+   {% block classattributes %}
+   {% if attributes %}
+   .. rubric:: {{ _('Attributes') }}
+
+   .. autosummary::
+   {% for item in attributes %}
+      ~{{ name }}.{{ item }}
+   {%- endfor %}
+   {% endif %}
+   {% endblock %}
+{%- endfor %}
+
 {% endif %}
 {% endblock %}
-{% endif %}

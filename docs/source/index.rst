@@ -10,9 +10,15 @@ Welcome to Pandas Accessors's documentation!
    `pandas_selector.SUBPACKAGE` in the autosummary block
    below.
 
+API
+---
+
 .. autosummary::
    :toctree: api
    :recursive:
+   :template: custom-module-template.rst
+
+   pandas_selector.accessor
 
 
 Indices and tables
