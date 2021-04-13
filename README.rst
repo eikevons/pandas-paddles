@@ -3,20 +3,26 @@ Pandas Selector
 
 Simple, composable column selector for ``loc[]``, ``iloc[]``, ``assign()`` and others.
 
-Motivation
-----------
+.. image:: https://readthedocs.org/projects/pandas-selector/badge/?version=latest
+  :target: https://pandas-selector.readthedocs.io/en/latest/?badge=latest
+  :alt: Documentation Status
+.. image:: https://github.com/eikevons/pandas-selector/actions/workflows/check.yml/badge.svg
+  :target: https://github.com/eikevons/pandas-selector/actions/workflows/check.yml
+  :alt: Test Status
 
-Make chaining Pandas operations easier and bring functionality to Pandas
-similar to Spark's
-`col() <https://spark.apache.org/docs/latest/api/python/reference/api/pyspark.sql.functions.col.html#pyspark.sql.functions.col>`_
-function or referencing columns in R's
-`dplyr <https://dplyr.tidyverse.org/articles/dplyr.html>`_.
+Overview
+--------
 
-Installation
-------------
-
-Install from PyPI with ``pip install pandas-selector``. Pandas versions 
-1.0+ (``^1.0``) are supported.
+- **Motivation**: Make chaining Pandas operations easier and bring
+  functionality to Pandas similar to Spark's `col()
+  <https://spark.apache.org/docs/latest/api/python/reference/api/pyspark.sql.functions.col.html#pyspark.sql.functions.col>`_
+  function or referencing columns in R's `dplyr
+  <https://dplyr.tidyverse.org/articles/dplyr.html>`_.
+- **Install** from PyPI with ``pip install
+  pandas-selector``. Pandas versions 1.0+ (``^1.0``) are supported.
+- **Documentation** can be found at `readthedocs
+  <https://readthedocs.org/projects/pandas-selector/>`_.
+- **Source code** can be obtained from `GitHub <https://github.com/eikevons/pandas-selector>`_.
 
 Example: Create new column and filter
 -------------------------------------
@@ -69,8 +75,8 @@ context:
     # 3  3
     # 4  4
 
-Smilar projects for pandas
-==========================
+Similar projects for pandas
+===========================
 
 * `pandas-ply <https://github.com/coursera/pandas-ply>`_
 

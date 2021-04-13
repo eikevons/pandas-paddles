@@ -2,7 +2,7 @@
 Pandas Selector
 ---------------
 
-Simple column selector for ``loc[]``, ``iloc[]``, ``assign()`` and others. Juse use ``DF``.
+Simple, composable column selector for ``loc[]``, ``iloc[]``, ``assign()`` and others. Juse use ``DF``.
 
 Filter rows:
 
