@@ -21,7 +21,7 @@ Overview
 - **Install** from PyPI with ``pip install
   pandas-selector``. Pandas versions 1.0+ (``^1.0``) are supported.
 - **Documentation** can be found at `readthedocs
-  <https://readthedocs.org/projects/pandas-selector/>`_.
+  <https://pandas-selector.readthedocs.io/en/latest/>`_.
 - **Source code** can be obtained from `GitHub <https://github.com/eikevons/pandas-selector>`_.
 
 Example: Create new column and filter
