@@ -63,7 +63,7 @@ Chain operations:
 
 Author: Eike von Seggern <eike@vonseggern.space>
 """
-__version__ = "0.1.1"
+__version__ = "0.1.2-dev"
 __all__ = ["DF"]
 
 from .accessor import DataframeAccessor
