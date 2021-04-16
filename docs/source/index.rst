@@ -18,7 +18,7 @@ API
    :recursive:
    :template: custom-module-template.rst
 
-   pandas_selector.accessor
+   pandas_selector.df_accessor
 
 
 Indices and tables

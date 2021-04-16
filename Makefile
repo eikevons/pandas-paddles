@@ -7,6 +7,11 @@ DEV_IMAGE_NAME := $(IMAGE_NAME)-dev
 TESTS :=
 PYTEST_ARGS := --cov=/app/$(PACKAGE_NAME) -p no:cacheprovider -k "$(TESTS)" /app/tests
 
+# Enable BuildKit, necessary for `RUN --mount ...`
+# See https://docs.docker.com/develop/develop-images/build_enhancements/
+DOCKER_BUILDKIT := 1
+export DOCKER_BUILDKIT
+
 help:
 	@echo "Provided targets"
 	@echo "image      build prod image"

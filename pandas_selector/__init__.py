@@ -66,6 +66,6 @@ Author: Eike von Seggern <eike@vonseggern.space>
 __version__ = "0.1.2-dev"
 __all__ = ["DF"]
 
-from .accessor import DataframeAccessor
+from .df_accessor import DataframeAccessor
 
 DF = DataframeAccessor()
