@@ -1,4 +1,4 @@
-"""Access wrappers for data frames members."""
+"""Access wrappers for data frame members."""
 from typing import Callable, Optional, Sequence, Union
 
 import pandas as pd
