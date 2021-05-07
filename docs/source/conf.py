@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath("../.."))
 
 # -- Project information -----------------------------------------------------
 
-project = "Pandas Accessors"
+project = "Pandas Selector"
 author = "Eike von Seggern"
 copyright = f"2021, {author}"
 
