@@ -58,6 +58,7 @@ class Item(WrapperBase):
     def __str__(self):
         return f"[{self.name!r}]"
 
+
 class Method(WrapperBase):
     """Wrap method and operator calls.
 
@@ -144,6 +145,14 @@ def _add_dunder_operators(cls):
     return cls
 
 
+def _get_obj_attr_doc(obj: type, attr: str):
+    if isinstance(attr, str):
+        a = getattr(obj, attr, None)
+        if a:
+            return a.__doc__
+    return None
+
+
 @_add_dunder_operators # This is necessary to overload all dunder operators.
 class DataframeAccessor:
     """Build callable for column access and operators.
@@ -183,6 +192,27 @@ class DataframeAccessor:
             Sequence of callables to extract attributes from data frames or series.
         """
         self._levels = levels or ()
+
+        d = self._get_doc()
+        if d:
+            self.__doc__ = d
+
+    def _get_doc(self):
+        doc = None
+        # Assume DataFrame-level function for 1-level accessor
+        if len(self._levels) == 1 and isinstance(self._levels[-1].name, str):
+            doc = _get_obj_attr_doc(pd.DataFrame, self._levels[-1].name)
+        # Check for typed Series accessors for 3+-level accessor
+        elif len(self._levels) >= 3 and self._levels[-2].name in ('dt', 'str'):
+            doc = _get_obj_attr_doc(
+                getattr(pd.Series, self._levels[-2].name),
+                self._levels[-1].name,
+                )
+        # Check for Series-level function for 2+-level accessor
+        elif len(self._levels) > 1:
+            doc = _get_obj_attr_doc(pd.Series, self._levels[-1].name)
+
+        return doc
 
     def __repr__(self):
         return f"<{type(self).__name__} {'.'.join(repr(l) for l in self._levels)}>"
