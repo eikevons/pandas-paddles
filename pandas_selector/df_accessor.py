@@ -140,6 +140,19 @@ def _add_dunder_operators(cls):
         def fix_closure(op):
             def op_wrap(self, *args, **kwargs):
                 return self._operator_proxy(op)(*args, **kwargs)
+            # Update method metadata to improve usablility
+            op_wrap.__name__ = op
+            orig_doc = None
+            orig_annot = None
+            for cls in (pd.Series, pd.DataFrame):
+                if hasattr(cls, op):
+                    a = getattr(cls, op)
+                    if not a.__doc__:
+                        continue
+                    op_wrap.__doc__ = a.__doc__
+                    op_wrap.__annotations__ = a.__annotations__
+                    break
+
             return op_wrap
         setattr(cls, op, fix_closure(op))
     return cls
@@ -244,5 +257,6 @@ class DataframeAccessor:
                 obj = lvl(obj, root_df)
             return obj
 
-        # Create a new DataframeAccessor
+        # Create a new DataframeAccessor with the last level called as a
+        # method.
         return DataframeAccessor(self._levels[:-1] + (Method(self._levels[-1].name, *args, **kwargs),))
