@@ -27,6 +27,13 @@ def df():
     ("(DF.x > 2) | (DF.y == 'a')", [True, False] + 3 * [True]),
     ("(DF.x > 2) ^ (DF.y == 'd')", 2 * [False] + [True, False, True]),
     ("~(DF.x > 2)", 2 * [True] + 3 * [False]),
+    # Reverse operators
+    ("2 > DF.x", [True] + 4 * [False]),
+    ("2 >= DF.x", [True, True] + 3 * [False]),
+    ("2 == DF.x", [False, True] + 3 * [False]),
+    ("2 != DF.x", [True, False] + 3 * [True]),
+    ("2 <= DF.x", [False, True] + 3 * [True]),
+    ("2 < DF.x", 2 * [False] + 3 * [True]),
     ])
 def test_comparison(df, code, expected):
     f = eval(code)
