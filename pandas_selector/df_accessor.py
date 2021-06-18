@@ -93,7 +93,9 @@ class Method(WrapperBase):
     # TODO include args[0] (other) in string where sensible
     def __str__(self):
         # return f"{self.this}.{self.name}(...)"
-        return f".{self.name}(...)"
+        if self.args or self.kwargs:
+            return f".{self.name}(...)"
+        return f".{self.name}()"
 
     def __call__(self, obj, root_df):
         # this = self.this(obj)
