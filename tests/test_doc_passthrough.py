@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from pandas_selector import DF
+from pandas_selector import DF, S
 
 @pytest.mark.parametrize(
     "df_sel,exp_doc",
@@ -9,11 +9,14 @@ from pandas_selector import DF
         (DF.sum, pd.DataFrame.sum.__doc__),
         (DF.a.isin, pd.Series.isin.__doc__),
         (DF['a'].isin, pd.Series.isin.__doc__),
-        (DF['dt'].isin, pd.Series.isin.__doc__),
         (DF.a.dt.tz_convert, pd.Series.dt.tz_convert.__doc__),
         (DF.a.str.match, pd.Series.str.match.__doc__),
         (DF['a'].dt.tz_convert, pd.Series.dt.tz_convert.__doc__),
         (DF['a'].str.match, pd.Series.str.match.__doc__),
+        (S.sum, pd.Series.sum.__doc__),
+        (S.isin, pd.Series.isin.__doc__),
+        (S.dt.tz_convert, pd.Series.dt.tz_convert.__doc__),
+        (S.str.match, pd.Series.str.match.__doc__),
         ]
     )
 
