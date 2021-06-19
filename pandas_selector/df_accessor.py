@@ -298,3 +298,16 @@ class SeriesAccessor(AccessorBase):
     >>> s[S <= 2]
     """
     wrapped_cls = pd.Series
+    def _get_doc(self):
+        doc = None
+        # Assume Series-level function for 1-level accessor
+        if len(self._levels) == 1 and isinstance(self._levels[-1].name, str):
+            doc = _get_obj_attr_doc(self.wrapped_cls, self._levels[-1].name)
+        # Check for typed Series accessors
+        elif len(self._levels) > 1 and self._levels[0].name in ('dt', 'str'):
+            doc = _get_obj_attr_doc(
+                getattr(pd.Series, self._levels[0].name),
+                self._levels[-1].name,
+                )
+
+        return doc
