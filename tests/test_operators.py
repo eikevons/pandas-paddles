@@ -13,7 +13,7 @@ def df():
 
 @pytest.fixture
 def s():
-    return pd.Series(range(-3, 4))
+    return pd.Series(range(7))
 
 
 @pytest.mark.parametrize(
@@ -68,16 +68,32 @@ def test_df_arithmetic(df, code, expected):
 @pytest.mark.parametrize(
     "code, expected",
     [ 
-     ("(S < 1)", 4 * [True]  + 3 * [False]),
-     ("(S <= 1)", 5 * [True]  + 2 * [False]),
-     ("(S == 1)", 4 * [False]  + [True] + 2 * [False]),
-     ("(S != 1)", 4 * [True]  + [False] + 2 * [True]),
-     ("~(S != 1)", 4 * [False]  + [True] + 2 * [False]),
+     ("(S < 4)", 4 * [True]  + 3 * [False]),
+     ("(S <= 4)", 5 * [True]  + 2 * [False]),
+     ("(S == 4)", 4 * [False]  + [True] + 2 * [False]),
+     ("(S != 4)", 4 * [True]  + [False] + 2 * [True]),
+     ("~(S != 4)", 4 * [False]  + [True] + 2 * [False]),
      # Reverse operator
-     ("(1 > S)", 4 * [True]  + 3 * [False]),
+     ("(4 > S)", 4 * [True]  + 3 * [False]),
+     # Combine operators
+     ("(S > 1) & (S < 4)", [False, True, True] + 4 * [False]),
      ]
     )
 def test_series_comparison(s, code, expected):
     f = eval(code)
     test = f(s)
+    assert test.to_list() == expected
+
+
+@pytest.mark.parametrize(
+    "selector,expected",
+    [
+        (S > 1, [2, 3]),
+        (S.mod(3) == 0, [-3, 0, 3]),
+        ((S >= 0) & (S.mod(3) == 0), [0, 3]),
+    ]
+    )
+def test_series_operators(s, selector, expected):
+    test = selector(s)
+    s_exp = pd.Series(expected, index=expected)
     assert test.to_list() == expected
