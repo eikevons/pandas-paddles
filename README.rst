@@ -1,7 +1,7 @@
 Pandas Selector
 ===============
 
-Simple, composable column selector for ``loc[]``, ``iloc[]``, ``assign()`` and others.
+Simple, composable selectors for ``loc[]``, ``iloc[]``, ``assign()`` and others.
 
 .. image:: https://readthedocs.org/projects/pandas-selector/badge/?version=latest
   :target: https://pandas-selector.readthedocs.io/en/latest/?badge=latest
@@ -77,6 +77,11 @@ context:
 
 Similar projects for pandas
 ===========================
+
+* `siuba <https://github.com/machow/siuba>`_
+
+  * (+) active
+  * (-) new API to learn
 
 * `pandas-ply <https://github.com/coursera/pandas-ply>`_
 
