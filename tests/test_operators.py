@@ -67,7 +67,7 @@ def test_df_arithmetic(df, code, expected):
 
 @pytest.mark.parametrize(
     "code, expected",
-    [ 
+    [
      ("(S < 4)", 4 * [True]  + 3 * [False]),
      ("(S <= 4)", 5 * [True]  + 2 * [False]),
      ("(S == 4)", 4 * [False]  + [True] + 2 * [False]),
@@ -76,7 +76,7 @@ def test_df_arithmetic(df, code, expected):
      # Reverse operator
      ("(4 > S)", 4 * [True]  + 3 * [False]),
      # Combine operators
-     ("(S > 1) & (S < 4)", [False, True, True] + 4 * [False]),
+     ("(S > 1) & (S < 4)", [False, False, True, True] + 3 * [False]),
      ]
     )
 def test_series_comparison(s, code, expected):
@@ -86,14 +86,13 @@ def test_series_comparison(s, code, expected):
 
 
 @pytest.mark.parametrize(
-    "selector,expected",
+    "code,expected",
     [
-        (S > 1, [2, 3]),
-        (S.mod(3) == 0, [-3, 0, 3]),
-        ((S >= 0) & (S.mod(3) == 0), [0, 3]),
+        ("S.mod(3) == 0", [True, False, False, True, False, False, True]),
+        ("(S >= 2) & (S.mod(3) == 0)", [False, False, False, True, False, False, True]),
     ]
     )
-def test_series_operators(s, selector, expected):
-    test = selector(s)
-    s_exp = pd.Series(expected, index=expected)
+def test_series_operators(s, code, expected):
+    f = eval(code)
+    test = f(s)
     assert test.to_list() == expected

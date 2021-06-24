@@ -31,6 +31,7 @@ class WrapperBase:
         """
         raise NotImplementedError("Must be implemented by a sub-class.")
 
+
 class Attribute(WrapperBase):
     """Wrap ``df.column_name`` or similar access patterns."""
     def __call__(self, obj, root_df):
@@ -100,7 +101,7 @@ class Method(WrapperBase):
     def __call__(self, obj, root_df):
         # this = self.this(obj)
         op_meth = getattr(obj, self.name)
-        if len(self.args) == 1 and isinstance(self.args[0], DataframeAccessor):
+        if len(self.args) == 1 and isinstance(self.args[0], AccessorBase):
             other = self.args[0](root_df)
             return op_meth(other)
         return op_meth(*self.args, **self.kwargs)
