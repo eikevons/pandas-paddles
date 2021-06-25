@@ -2,7 +2,11 @@
 Pandas Selector
 ---------------
 
-Simple, composable column selector for ``loc[]``, ``iloc[]``, ``assign()`` and others. Juse use ``DF``.
+Simple, composable selector for ``loc[]``, ``iloc[]``, ``assign()`` and
+others. Just use ``DF`` when working with DataFrames and ``S`` for Series.
+
+DataFrame examples
+~~~~~~~~~~~~~~~~~~
 
 Filter rows:
 
@@ -60,12 +64,31 @@ Chain operations:
 7  7  B   BBBBBBB
 8  8  c  cccccccc
 
+Series examples
+~~~~~~~~~~~~~~~
+
+Select subset of series matching prediate:
+
+>>> from pandas_selector import S
+>>> s = pd.Series(range(10))
+>>> s[S < 3]
+0    0
+1    1
+2    2
+dtype: int64
+>>> s[(S > 2) & (S.mod(2) == 0)]
+4    4
+6    6
+8    8
+dtype: int64
+
 
 Author: Eike von Seggern <eike@vonseggern.space>
 """
 __version__ = "0.1.2-dev"
-__all__ = ["DF"]
+__all__ = ["DF", "S"]
 
-from .df_accessor import DataframeAccessor
+from .df_accessor import DataframeAccessor, SeriesAccessor
 
 DF = DataframeAccessor()
+S = SeriesAccessor()

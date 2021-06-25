@@ -1,4 +1,4 @@
-from pandas_selector import DF
+from pandas_selector import DF, S
 
 import pandas as pd
 import pytest
@@ -8,6 +8,11 @@ def df():
     return pd.DataFrame({
         "x": range(5),
         })
+
+
+@pytest.fixture
+def ser():
+    return pd.Series(range(5))
 
 
 def test_DF_end_to_end(df):
@@ -24,3 +29,13 @@ def test_DF_end_to_end(df):
         "z": [0, 0, 2, 3],
     })
     return pd.testing.assert_frame_equal(test, expected)
+
+@pytest.mark.parametrize(
+    "selector,expected",
+    [
+    ]
+)
+def test_S_end_to_end(ser, selector, expected):
+    test = ser[S < 2]
+    expected = pd.Series(range(2))
+    return pd.testing.assert_series_equal(test, expected)

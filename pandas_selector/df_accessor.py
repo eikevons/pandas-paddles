@@ -31,6 +31,7 @@ class WrapperBase:
         """
         raise NotImplementedError("Must be implemented by a sub-class.")
 
+
 class Attribute(WrapperBase):
     """Wrap ``df.column_name`` or similar access patterns."""
     def __call__(self, obj, root_df):
@@ -93,12 +94,14 @@ class Method(WrapperBase):
     # TODO include args[0] (other) in string where sensible
     def __str__(self):
         # return f"{self.this}.{self.name}(...)"
-        return f".{self.name}(...)"
+        if self.args or self.kwargs:
+            return f".{self.name}(...)"
+        return f".{self.name}()"
 
     def __call__(self, obj, root_df):
         # this = self.this(obj)
         op_meth = getattr(obj, self.name)
-        if len(self.args) == 1 and isinstance(self.args[0], DataframeAccessor):
+        if len(self.args) == 1 and isinstance(self.args[0], AccessorBase):
             other = self.args[0](root_df)
             return op_meth(other)
         return op_meth(*self.args, **self.kwargs)
@@ -108,6 +111,10 @@ def _add_dunder_operators(cls):
     """Dress class with all sensible comparison operations.
 
     The class must implement a ``_operator_proxy`` method.
+
+    .. note::
+        This need to be applied on the concrete classes not the base class
+        to allow copying of docstrings.
     """
     for op in [
         "__abs__",
@@ -144,9 +151,9 @@ def _add_dunder_operators(cls):
             op_wrap.__name__ = op
             orig_doc = None
             orig_annot = None
-            for cls in (pd.Series, pd.DataFrame):
-                if hasattr(cls, op):
-                    a = getattr(cls, op)
+            for pd_cls in {pd.Series} | {cls.wrapped_cls}:
+                if hasattr(pd_cls, op):
+                    a = getattr(pd_cls, op)
                     if not a.__doc__:
                         continue
                     op_wrap.__doc__ = a.__doc__
@@ -166,8 +173,60 @@ def _get_obj_attr_doc(obj: type, attr: str):
     return None
 
 
+class AccessorBase:
+    wrapped_cls = None
+    def __init__(self,
+                 levels:Union[Sequence[Callable], None]=None):
+        """
+        Parameters
+        ----------
+        levels:
+            Sequence of callables to extract attributes from data frames or series.
+        """
+        self._levels = levels or ()
+
+        d = self._get_doc()
+        if d:
+            self.__doc__ = d
+
+    def _get_doc(self):
+        return None
+
+    def __repr__(self):
+        return f"<{type(self).__name__} {'.'.join(repr(l) for l in self._levels)}>"
+
+    def __str__(self):
+        return ''.join(str(l) for l in self._levels)
+
+    def __getattr__(self, name):
+        return type(self)(self._levels + (Attribute(name),))
+
+    def __getitem__(self, key):
+        return type(self)(self._levels + (Item(key),))
+
+    def _operator_proxy(self, op_name):
+        """Generate proxy function for built-in operators.
+
+        Used by :func:`_add_dunder_operators`
+        """
+        def op_wrapper(*args, **kwargs):
+            return type(self)(self._levels + (Method(op_name, *args, **kwargs),))
+        return op_wrapper
+
+    def __call__(self, *args, **kwargs):
+        # Heuristic: Assume the selector is applied if exactly one DataFrame
+        # or Series argument is passed.
+        if len(args) == 1 and isinstance(args[0], self.wrapped_cls):
+            obj = root_df = args[0]
+            for lvl in self._levels:
+                obj = lvl(obj, root_df)
+            return obj
+
+        # Create a new accessor with the last level called as a method.
+        return type(self)(self._levels[:-1] + (Method(self._levels[-1].name, *args, **kwargs),))
+
 @_add_dunder_operators # This is necessary to overload all dunder operators.
-class DataframeAccessor:
+class DataframeAccessor(AccessorBase):
     """Build callable for column access and operators.
 
     Use the global instance like::
@@ -196,25 +255,12 @@ class DataframeAccessor:
     >>> df.assign(y = DF.x * 2)
     >>> df
     """
-    def __init__(self,
-                 levels:Union[Sequence[Callable], None]=None):
-        """
-        Parameters
-        ----------
-        levels:
-            Sequence of callables to extract attributes from data frames or series.
-        """
-        self._levels = levels or ()
-
-        d = self._get_doc()
-        if d:
-            self.__doc__ = d
-
+    wrapped_cls = pd.DataFrame
     def _get_doc(self):
         doc = None
         # Assume DataFrame-level function for 1-level accessor
         if len(self._levels) == 1 and isinstance(self._levels[-1].name, str):
-            doc = _get_obj_attr_doc(pd.DataFrame, self._levels[-1].name)
+            doc = _get_obj_attr_doc(self.wrapped_cls, self._levels[-1].name)
         # Check for typed Series accessors for 3+-level accessor
         elif len(self._levels) >= 3 and self._levels[-2].name in ('dt', 'str'):
             doc = _get_obj_attr_doc(
@@ -227,36 +273,42 @@ class DataframeAccessor:
 
         return doc
 
-    def __repr__(self):
-        return f"<{type(self).__name__} {'.'.join(repr(l) for l in self._levels)}>"
 
-    def __str__(self):
-        return ''.join(str(l) for l in self._levels)
+@_add_dunder_operators # This is necessary to overload all dunder operators.
+class SeriesAccessor(AccessorBase):
+    """Build callable for series attributes and operators.
 
-    def __getattr__(self, name):
-        return DataframeAccessor(self._levels + (Attribute(name),))
+    Use the global instance like::
 
-    def __getitem__(self, key):
-        return DataframeAccessor(self._levels + (Item(key),))
+        from pandas_selector import S
+        s[S < 0]
 
-    def _operator_proxy(self, op_name):
-        """Generate proxy function for built-in operators.
+    All operations (item/attribute access, method calls) are passed to the
+    series of the context.
 
-        Used by :func:`_add_dunder_operators`
-        """
-        def op_wrapper(*args, **kwargs):
-            return DataframeAccessor(self._levels + (Method(op_name, *args, **kwargs),))
-        return op_wrapper
+    This is useful in combination with :attr:`~pandas.Series.loc`,
+    :attr:`~pandas.Series.iloc` and other methods that accept callables
+    taking the series to act on as single argument.
 
-    def __call__(self, *args, **kwargs):
-        # Heuristic: Assume the selector is applied if exactly one DataFrame
-        # argument is passed.
-        if len(args) == 1 and isinstance(args[0], pd.DataFrame):
-            obj = root_df = args[0]
-            for lvl in self._levels:
-                obj = lvl(obj, root_df)
-            return obj
+    Examples
+    --------
+    Usage with ``[]``, ``loc`` or ``iloc``:
 
-        # Create a new DataframeAccessor with the last level called as a
-        # method.
-        return DataframeAccessor(self._levels[:-1] + (Method(self._levels[-1].name, *args, **kwargs),))
+    >>> S = SeriesAccessor()
+    >>> s = pd.Series(range(10))
+    >>> s[S <= 2]
+    """
+    wrapped_cls = pd.Series
+    def _get_doc(self):
+        doc = None
+        # Assume Series-level function for 1-level accessor
+        if len(self._levels) == 1 and isinstance(self._levels[-1].name, str):
+            doc = _get_obj_attr_doc(self.wrapped_cls, self._levels[-1].name)
+        # Check for typed Series accessors
+        elif len(self._levels) > 1 and self._levels[0].name in ('dt', 'str'):
+            doc = _get_obj_attr_doc(
+                getattr(pd.Series, self._levels[0].name),
+                self._levels[-1].name,
+                )
+
+        return doc
