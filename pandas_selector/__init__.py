@@ -85,7 +85,7 @@ dtype: int64
 
 Author: Eike von Seggern <eike@vonseggern.space>
 """
-__version__ = "0.1.2-dev"
+__version__ = "0.1.2"
 __all__ = ["DF", "S"]
 
 from .df_accessor import DataframeAccessor, SeriesAccessor
