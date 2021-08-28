@@ -128,12 +128,14 @@ class Method(WrapperBase):
         return f"<{type(self).__name__}: {self.name}({', '.join(arg_reprs)})>"
 
     def __str__(self):
-        # arg_reprs = (
-        #     [f"{a!r}" for a in self.args]
-        #     + [f"{k}={a!r}" for k, a in self.kwargs.items()]
-        #     )
-        arg_reprs = ("...",) if len(self.args) + len(self.kwargs) else ("",)
-        return f".{self.name}({', '.join(arg_reprs)})"
+        # Use shorter `str` representation for accessors and `repr` for the
+        # rest
+        fmt_arg = lambda a: str(a) if isinstance(a, AccessorBase) else repr(a)
+        arg_strs = (
+            [fmt_arg(a) for a in self.args]
+            + [f"{k}={fmt_arg(a)}" for k, a in self.kwargs.items()]
+            )
+        return f".{self.name}({', '.join(arg_strs)})"
 
     def _wrap_method_arg(self, arg, root_obj):
         if isinstance(arg, AccessorBase):
