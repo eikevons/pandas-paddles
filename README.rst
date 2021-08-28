@@ -32,8 +32,8 @@ Instead of writing "traditional" Pandas like this:
 .. code-block:: python
 
     df_in = pd.DataFrame({"x": range(5)})
-    df = df_in.assign(y = df_in.x // 2)
-    df = df.loc[df.y <= 1]
+    df = df_in.assign(y = df_in["x"] // 2)
+    df = df.loc[df["y"] <= 1]
     df
     #    x  y
     # 0  0  0
@@ -47,8 +47,8 @@ One can write:
 
     from pandas_selector import DF
     df = (df_in
-          .assign(y = DF.x // 2)
-          .loc[DF.y <= 1]
+          .assign(y = DF["x"] // 2)
+          .loc[DF["y"] <= 1]
          )
 
 This is especially handy when re-iterating on data frame manipulations
@@ -61,9 +61,9 @@ context:
 
     df = pd.DataFrame({
         "X": range(5),
-        "Y": ["1", "a", "c", "D", "e"],
+        "y": ["1", "a", "c", "D", "e"],
     })
-    df.loc[DF.y.str.isupper() | DF.y.str.isnumeric()]
+    df.loc[DF["y"]str.isupper() | DF["y"]str.isnumeric()]
     #    X  y
     # 0  0  1
     # 3  3  D
@@ -74,6 +74,34 @@ context:
     # 2  2
     # 3  3
     # 4  4
+
+You can even use ``DF`` in the arguments to methods:
+
+.. code-block:: python
+
+    df = pd.DataFrame({
+        "x": range(5),
+        "y": range(2, 7),
+    })
+    df.assign(z = DF['x'].clip(lower=2.2, upper=DF['y'].median()))
+    #    x  y    z
+    # 0  0  2  2.2
+    # 1  1  3  2.2
+    # 2  2  4  2.2
+    # 3  3  5  3.0
+    # 4  4  6  4.0
+
+When working with ``~pd.Series`` the ``S`` object exists. It can be used
+similar to ``DF``:
+
+.. code-block:: python
+
+  s = pd.Series(range(5))
+  s[s < 3]
+  # 0    0
+  # 1    1
+  # 2    2
+  # dtype: int64
 
 Similar projects for pandas
 ===========================
