@@ -5,7 +5,7 @@ import pandas as pd
 
 # Wrappers for attribute, item and operator access
 class WrapperBase:
-    """Base class for wrapping attribute, item or operator access."""
+    """Base class for wrapping attribute, item or operator/method access."""
     def __init__(self, name: str):
         """
         Parameters
@@ -18,7 +18,7 @@ class WrapperBase:
     def __repr__(self):
         return f"<{type(self).__name__} {self.name}>"
 
-    def __call__(self, obj, root_df: pd.DataFrame):
+    def __call__(self, obj, root_obj: Union[pd.DataFrame,pd.Series]):
         """Access member of wrapped object.
 
         Parameters
@@ -26,15 +26,15 @@ class WrapperBase:
         obj
             Typically the ``~pandas.DataFrame`` or ``~pandas.Series`` to act
             upon.
-        root_df
-            The original data frame from the context.
+        root_obj
+            The original data frame or series from the context.
         """
         raise NotImplementedError("Must be implemented by a sub-class.")
 
 
 class Attribute(WrapperBase):
     """Wrap ``df.column_name`` or similar access patterns."""
-    def __call__(self, obj, root_df):
+    def __call__(self, obj, root_obj):
         """Access attribute of ``obj``.
 
         Parameters
@@ -42,8 +42,8 @@ class Attribute(WrapperBase):
         obj
             Typically the ``~pandas.DataFrame`` or ``~pandas.Series`` to act
             upon.
-        root_df
-            The original data frame from the context. (Unused)
+        root_obj
+            The original data frame or series from the context. (Unused)
         """
         return getattr(obj, self.name)
 
@@ -53,7 +53,17 @@ class Attribute(WrapperBase):
 
 class Item(WrapperBase):
     """Wrap ``df["column_name"]`` or similar access patterns."""
-    def __call__(self, obj, root_df):
+    def __call__(self, obj, root_obj):
+        """Access attribute of ``obj``.
+
+        Parameters
+        ----------
+        obj
+            Typically the ``~pandas.DataFrame`` or ``~pandas.Series`` to act
+            upon.
+        root_obj
+            The original data frame or series from the context. (Unused)
+        """
         return obj[self.name]
 
     def __str__(self):
@@ -63,11 +73,33 @@ class Item(WrapperBase):
 class Method(WrapperBase):
     """Wrap method and operator calls.
 
-    E.g.
+    This can also be nested, i.e. use ``DF`` or ``S`` in method arguments.
 
-    * ``DF.x <= other`` or similar operator patterns
-    * ``DF.x.method(...)``
-    * :code:`DF.x.method(1 + 'abc')`
+    Examples
+    --------
+    Operators::
+
+        DF["x"] <= other # or DF.x <= other
+
+        # dynamically create comparison predicate from the same data frame
+        DF["x"] <= DF["x"].mean()
+
+        # or use another column
+        DF["x"] <= DF["y"]
+        DF["x"] <= DF["y"].min()
+
+    Access series methods::
+
+        DF["x"].method() # or DF.x.method()
+
+        # You can also pass arguments.
+    
+        DF["x"].clip(0)
+        DF["x"].clip(upper=0)
+
+        # You can use DF (or S) in the arguments to access the outer object
+        DF["x"].clip(DF["y"].min())
+        DF["x"].clip(upper=DF["y"].min())
     """
     def __init__(self, name: str,
                  # this: "DataframeAccessor",
@@ -88,23 +120,32 @@ class Method(WrapperBase):
         self.kwargs = kwargs
 
     def __repr__(self):
-        # TODO include args[0] (other) in string where sensible
-        return f"<{type(self).__name__}: {self.name}(...)>"
+        arg_reprs = (
+            [f"{a!r}" for a in self.args]
+            + [f"{k}={a!r}" for k, a in self.kwargs.items()]
+            )
 
-    # TODO include args[0] (other) in string where sensible
+        return f"<{type(self).__name__}: {self.name}({', '.join(arg_reprs)})>"
+
     def __str__(self):
-        # return f"{self.this}.{self.name}(...)"
-        if self.args or self.kwargs:
-            return f".{self.name}(...)"
-        return f".{self.name}()"
+        # arg_reprs = (
+        #     [f"{a!r}" for a in self.args]
+        #     + [f"{k}={a!r}" for k, a in self.kwargs.items()]
+        #     )
+        arg_reprs = ("...",) if len(self.args) + len(self.kwargs) else ("",)
+        return f".{self.name}({', '.join(arg_reprs)})"
 
-    def __call__(self, obj, root_df):
-        # this = self.this(obj)
+    def _wrap_method_arg(self, arg, root_obj):
+        if isinstance(arg, AccessorBase):
+            return arg(root_obj)
+        return arg
+
+    def __call__(self, obj, root_obj):
         op_meth = getattr(obj, self.name)
-        if len(self.args) == 1 and isinstance(self.args[0], AccessorBase):
-            other = self.args[0](root_df)
-            return op_meth(other)
-        return op_meth(*self.args, **self.kwargs)
+        return op_meth(
+            *[self._wrap_method_arg(arg, root_obj) for arg in self.args],
+            **{k: self._wrap_method_arg(arg, root_obj) for k, arg in self.kwargs.items()}
+        )
 
 
 def _add_dunder_operators(cls):
@@ -224,6 +265,7 @@ class AccessorBase:
 
         # Create a new accessor with the last level called as a method.
         return type(self)(self._levels[:-1] + (Method(self._levels[-1].name, *args, **kwargs),))
+
 
 @_add_dunder_operators # This is necessary to overload all dunder operators.
 class DataframeAccessor(AccessorBase):
