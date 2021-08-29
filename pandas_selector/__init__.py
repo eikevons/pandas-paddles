@@ -2,9 +2,10 @@
 Pandas Selector
 ---------------
 
-Just use ``DF`` in arguments to ``loc[]``, ``iloc[]``, ``assign()`` and
-other methods to access columns, methods, and attributes of the calling data
-frame (use ``S`` when dealing with ``pd.Series``). This allows to write
+Just use ``DF`` in arguments to :attr:`~pandas.DataFrame.loc`,
+:attr:`~pandas.DataFrame.iloc`, :meth:`~pandas.DataFrame.assign()` and other
+methods to access columns, methods, and attributes of the calling data frame
+(use ``S`` when dealing with :class:`pandas.Series`). This allows to write
 chains of operations much more concisely:
 
 - Chain with ``pandas_selector.DF``::

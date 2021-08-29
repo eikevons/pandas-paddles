@@ -44,6 +44,7 @@ extensions = [
     # https://github.com/numpy/numpydoc/issues/196
     # So we use napoleon instead
     "sphinx.ext.napoleon",
+    "sphinx.ext.intersphinx",
     # "numpydoc",
 ]
 
@@ -72,3 +73,7 @@ html_theme = "pydata_sphinx_theme"
 # -- Extension configuration -------------------------------------------------
 autosummary_generate = True
 autodoc_typehints = "description"
+
+intersphinx_mapping = {
+    "pandas": ("https://pandas.pydata.org/pandas-docs/dev", None),
+}
