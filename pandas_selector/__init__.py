@@ -2,8 +2,30 @@
 Pandas Selector
 ---------------
 
-Simple, composable selector for ``loc[]``, ``iloc[]``, ``assign()`` and
-others. Just use ``DF`` when working with DataFrames and ``S`` for Series.
+Just use ``DF`` in arguments to ``loc[]``, ``iloc[]``, ``assign()`` and
+other methods to access columns, methods, and attributes of the calling data
+frame (use ``S`` when dealing with ``pd.Series``). This allows to write
+chains of operations much more concisely:
+
+- Chain with ``pandas_selector.DF``::
+
+        from pandas_selector import DF
+        df_out = (df_in
+                  .loc[DF['x'] == 3]
+                  .assign(x_is_even = (DF['x'] % 2) == 0)
+                 )
+
+- Chain without ``pandas_selector.DF`` ::
+
+        df_out = (df_in
+                  .loc[lambda df: df['x'] == 3]
+                  .assign(x_is_even = lambda df: (df['x'] % 2) == 0)
+                 )
+- No chain::
+
+       df_out = df_in.loc[df_in['x'] == 3]
+       df_out = df_out.assign(x_is_even = (df_out['x'] % 2) == 0)
+
 
 DataFrame examples
 ~~~~~~~~~~~~~~~~~~
@@ -64,10 +86,27 @@ Chain operations:
 7  7  B   BBBBBBB
 8  8  c  cccccccc
 
+You can also use ``DF`` in function arguments:
+
+>>> df = pd.DataFrame({"x": range(6), "y": 2 * [1,2,3]})
+>>> df.assign(x2 = DF["x"].clip(DF["y"].min(), DF["y"].max()))
+   x  y  x2
+0  0  1   1
+1  1  2   1
+2  2  3   2
+3  3  1   3
+4  4  2   3
+5  5  3   3
+
+ or with keyword arguments:
+
+>>> DF.assign(x2 = DF["x"].clip(lower=DF["y"].min(), upper=DF["y"].max()))
+# ...
+
 Series examples
 ~~~~~~~~~~~~~~~
 
-Select subset of series matching prediate:
+Select subset of series matching predicate:
 
 >>> from pandas_selector import S
 >>> s = pd.Series(range(10))
@@ -81,7 +120,6 @@ dtype: int64
 6    6
 8    8
 dtype: int64
-
 
 Author: Eike von Seggern <eike@vonseggern.space>
 """

@@ -1,5 +1,5 @@
-Welcome to Pandas Accessors's documentation!
-============================================
+Welcome to Pandas Selector's documentation!
+===========================================
 
 .. toctree::
 
