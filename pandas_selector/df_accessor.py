@@ -290,19 +290,20 @@ class DataframeAccessor(AccessorBase):
     data frame of the context.
 
     This is useful in combination with :attr:`~pandas.DataFrame.loc`,
-    :attr:`~pandas.DataFrame.iloc`, :meth:`~pandas.DataFrame.assign` and
+    :attr:`~pandas.DataFrame.iloc`, :meth:`~pandas.DataFrame.assign()` and
     other methods that accept callables taking the data frame to act on as
     single argument.
 
     Examples
     --------
-    Usage with ``loc`` or ``iloc``:
+    Usage with :attr:`~pandas.DataFrame.loc` or
+    :attr:`pandas.Dataframe.iloc`:
 
     >>> DF = DataframeAccessor()
     >>> df = pd.DataFrame({"x": [1, 2, 3, 4]})
     >>> df.loc[DF.x <= 2]
 
-    Usage with ``assign()``:
+    Usage with :meth:`~pandas.DataFrame.assign()`:
 
     >>> df.assign(y = DF.x * 2)
     >>> df
@@ -340,7 +341,7 @@ class SeriesAccessor(AccessorBase):
 
     This is useful in combination with :attr:`~pandas.Series.loc`,
     :attr:`~pandas.Series.iloc` and other methods that accept callables
-    taking the series to act on as single argument.
+    taking the series to act on as argument.
 
     Examples
     --------
