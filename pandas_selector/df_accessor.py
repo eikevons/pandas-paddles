@@ -108,20 +108,16 @@ class Method(WrapperBase):
         DF["x"].clip(upper=DF["y"].min())
     """
     def __init__(self, name: str,
-                 # this: "DataframeAccessor",
                  *args, **kwargs):
         """
         Parameters
         ----------
         name
             Operator name, e.g. `__eq__`.
-        this
-            ``DataframeAccessor`` to apply operator upon.
         *args, **kwargs
             Optional arguments for the operator, e.g. the second argument for a binary operator.
         """
         super().__init__(name)
-        # self.this = this
         self.args = args
         self.kwargs = kwargs
 

@@ -1,7 +1,24 @@
 Pandas Selector
 ===============
 
-Simple, composable selectors for ``loc[]``, ``iloc[]``, ``assign()`` and others.
+Access the calling ``pandas`` data frame in ``loc[]``, ``iloc[]``,
+``assign()`` and other methods with ``DF`` to write better chains of
+data frame operations, e.g.::
+
+    df = (df
+          # Select all rows with column "x" < 2
+          .loc[DF["x"] < 2]
+          .assign(
+              # Shift "x" by its minimum.
+              y = DF["x"] - DF["x"].min(),
+              # Clip "x" to it's central 50% window. Note how DF is used
+              # in the argument to `clip()`.
+              z = DF["x"].clip(
+                  lower=DF["x"].quantile(0.25),
+                  upper=DF["x"].quantile(0.75)
+              ),
+          )
+         )
 
 .. image:: https://readthedocs.org/projects/pandas-selector/badge/?version=latest
   :target: https://pandas-selector.readthedocs.io/en/latest/?badge=latest
@@ -52,7 +69,8 @@ One can write:
          )
 
 This is especially handy when re-iterating on data frame manipulations
-interactively, e.g. in a notebook.
+interactively, e.g. in a notebook (just imagine you have to rename
+``df`` to ``df_out``).
 
 But you can access all methods and attributes of the data frame from the
 context:
