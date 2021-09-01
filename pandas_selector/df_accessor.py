@@ -31,6 +31,12 @@ class WrapperBase:
         """
         raise NotImplementedError("Must be implemented by a sub-class.")
 
+    def __getstate__(self):
+        return self.__dict__.copy()
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+
 
 class Attribute(WrapperBase):
     """Wrap ``df.column_name`` or similar access patterns."""
@@ -231,6 +237,12 @@ class AccessorBase:
         d = self._get_doc()
         if d:
             self.__doc__ = d
+
+    def __getstate__(self):
+        return self.__dict__.copy()
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
 
     def _get_doc(self):
         return None
