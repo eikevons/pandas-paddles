@@ -6,36 +6,16 @@ Just use ``DF`` in arguments to :attr:`~pandas.DataFrame.loc`,
 :attr:`~pandas.DataFrame.iloc`, :meth:`~pandas.DataFrame.assign()` and other
 methods to access columns, methods, and attributes of the calling data frame
 (use ``S`` when dealing with :class:`pandas.Series`). This allows to write
-chains of operations much more concisely:
-
-- Chain with ``pandas_selector.DF``::
-
-        from pandas_selector import DF
-        df_out = (df_in
-                  .loc[DF['x'] == 3]
-                  .assign(x_is_even = (DF['x'] % 2) == 0)
-                 )
-
-- Chain without ``pandas_selector.DF`` ::
-
-        df_out = (df_in
-                  .loc[lambda df: df['x'] == 3]
-                  .assign(x_is_even = lambda df: (df['x'] % 2) == 0)
-                 )
-- No chain::
-
-       df_out = df_in.loc[df_in['x'] == 3]
-       df_out = df_out.assign(x_is_even = (df_out['x'] % 2) == 0)
-
+chains of operations much more concisely. See `Comparison`_ below.
 
 DataFrame examples
 ~~~~~~~~~~~~~~~~~~
 
-Filter rows:
+Filter rows with :attr:`~pandas.DataFrame.loc`:
 
 >>> from pandas_selector import DF
 >>> df = pd.DataFrame({"x": range(9), "y": 3 * ["a", "B", "c"]})
->>> df.loc[DF.x < 3]
+>>> df.loc[DF["x"] < 3]
    x  y
 0  0  a
 1  1  B
@@ -43,7 +23,7 @@ Filter rows:
 
 Access nested column attributes:
 
->>> df.loc[DF.y.str.islower()]
+>>> df.loc[DF["y"].str.islower()]
    x  y
 0  0  a
 2  2  c
@@ -54,14 +34,14 @@ Access nested column attributes:
 
 Combine filter predicates:
 
->>> df.loc[DF.y.str.islower() & (df.x < 3)]
+>>> df.loc[DF["y"].str.islower() & (df.x < 3)]
    x  y
 0  0  a
 2  2  c
 
 Create new columns:
 
->>> df.assign(z = DF.x * DF.y)
+>>> df.assign(z = DF["x"] * DF["y"])
    x  y         z
 0  0  a
 1  1  B         B
@@ -76,8 +56,8 @@ Create new columns:
 Chain operations:
 
 >>> (df
-...  .assign(z = DF.x * DF.y)
-...  .loc[DF.z.str.len() > 3]
+...  .assign(z = DF["x"] * DF["y"])
+...  .loc[DF["z"].str.len() > 3]
 ... )
    x  y         z
 3  3  a       aaa
@@ -121,6 +101,33 @@ dtype: int64
 6    6
 8    8
 dtype: int64
+
+Comparison
+~~~~~~~~~~
+
+With ``pandas_selector.DF`` data frame operations can be easily composed in
+a way that does not need to reference the initial dataframes::
+
+    from pandas_selector import DF
+    df_out = (df_in
+              .loc[DF["x"] == 3]
+              .assign(x_is_even = (DF["x"] % 2) == 0)
+             )
+
+Without operator chaining, the data frame needs to be reassigned and
+referenced multiple times, which adds a lot of nois.::
+
+       df_out = df_in.loc[df_in["x"] == 3]
+       df_out = df_out.assign(x_is_even = (df_out["x"] % 2) == 0)
+
+Operator chaining without ``DF`` requires a lot of ``lambda`` boilerplate
+code::
+
+        df_out = (df_in
+                  .loc[lambda df: df["x"] == 3]
+                  .assign(x_is_even = lambda df: (df["x"] % 2) == 0)
+                 )
+
 
 Author: Eike von Seggern <eike@vonseggern.space>
 """
