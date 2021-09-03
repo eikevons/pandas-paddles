@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "pandas_selector"
-version = "0.1.2"
-description = "Simple, composable column selector for loc[], iloc[], assign() and others."
+version = "1.0.0"
+description = "Simple, composable selectors for loc[], iloc[], assign() and others."
 authors = ["Eike von Seggern <eikevons@mailbox.org>"]
 repository = "https://github.com/eikevons/pandas-selector.git"
 readme = "README.rst"
 license = "MIT"
 classifiers = [
-  "Development Status :: 4 - Beta",
+  "Development Status :: 5 - Production/Stable"
   "Environment :: Console",
   "Intended Audience :: Science/Research",
   "Operating System :: OS Independent",
