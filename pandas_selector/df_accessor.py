@@ -99,7 +99,7 @@ class Method(WrapperBase):
         DF["x"].method() # or DF.x.method()
 
         # You can also pass arguments.
-    
+
         DF["x"].clip(0)
         DF["x"].clip(upper=0)
 
@@ -284,7 +284,7 @@ class DataframeAccessor(AccessorBase):
     Use the global instance like::
 
         from pandas_selector import DF
-        df.loc[DF.x < 3]
+        df.loc[DF["x"] < 3]
 
     All operations (item/attribute access, method calls) are passed to the
     data frame of the context.
@@ -301,11 +301,11 @@ class DataframeAccessor(AccessorBase):
 
     >>> DF = DataframeAccessor()
     >>> df = pd.DataFrame({"x": [1, 2, 3, 4]})
-    >>> df.loc[DF.x <= 2]
+    >>> df.loc[DF["x"] <= 2]
 
     Usage with :meth:`~pandas.DataFrame.assign()`:
 
-    >>> df.assign(y = DF.x * 2)
+    >>> df.assign(y = DF["x"] * 2)
     >>> df
     """
     wrapped_cls = pd.DataFrame
