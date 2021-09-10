@@ -19,6 +19,7 @@ help:
 	@echo "shell      start shell in development image"
 	@echo "test       run unit tests. Use make TESTS=... to filter tests"
 	@echo "watch      run unit tests on every change. Use make TESTS=... to filter tests"
+	@echo "mypy       run mypy on package"
 	@echo "docs       create documentation."
 	@echo "TODO:"
 	@echo "format"
@@ -30,14 +31,14 @@ image: $(IMAGE_NAME).stamp
 
 devimage: $(DEV_IMAGE_NAME).stamp
 
-$(IMAGE_NAME).stamp: docker/prod.dockerfile pyproject.toml docker/install-prod.sh
+$(IMAGE_NAME).stamp: docker/prod.dockerfile pyproject.toml poetry.lock docker/install-prod.sh
 	docker build --rm \
 	    --tag $(IMAGE_NAME) \
 	    --file $< \
 	    .
 	@touch $@
 
-$(DEV_IMAGE_NAME).stamp: docker/dev.dockerfile $(IMAGE_NAME).stamp
+$(DEV_IMAGE_NAME).stamp: docker/dev.dockerfile pyproject.toml poetry.lock $(IMAGE_NAME).stamp
 	docker build --rm \
 	    --tag $(DEV_IMAGE_NAME) \
 	    --build-arg "SRC_IMAGE=$(IMAGE_NAME)" \
@@ -71,6 +72,15 @@ watch: devimage
 	    -w /tmp/home \
 	    $(DEV_IMAGE_NAME) \
 	    pytest-watch /app/$(PACKAGE_NAME) /app/tests -- $(PYTEST_ARGS)
+
+mypy: devimage
+	docker run --rm -ti \
+	    --name $(DEV_IMAGE_NAME)-$@ \
+	    --volume "$(PWD):/app:ro" \
+	    --env "HOME=/tmp/home" \
+	    -w /tmp/home \
+	    $(DEV_IMAGE_NAME) \
+	    mypy /app/pandas_selector/
 
 
 docs: devimage
