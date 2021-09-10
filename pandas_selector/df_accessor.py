@@ -1,5 +1,5 @@
-"""Access wrappers for data frame members."""
-from typing import Callable, Optional, Sequence, Union
+
+from typing import Any, Callable, Dict, Iterable, Optional, Union, Tuple, Type
 
 import pandas as pd
 
@@ -15,41 +15,51 @@ class WrapperBase:
         """
         self.name = name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{type(self).__name__} {self.name}>"
 
-    def __call__(self, obj, root_obj: Union[pd.DataFrame,pd.Series]):
+    def __call__(self, obj: Any, root_obj: Union[pd.DataFrame,pd.Series]) -> Any: 
         """Access member of wrapped object.
 
         Parameters
         ----------
         obj
-            Typically the ``~pandas.DataFrame`` or ``~pandas.Series`` to act
-            upon.
+            Anything that can be reached view item-,attribute- or
+            method-calls from a ``~pandas.DataFrame`` or ``~pandas.Series``.
         root_obj
             The original data frame or series from the context.
+
+        Returns
+        -------
+        member
+            The referenced member of ``obj``.
         """
         raise NotImplementedError("Must be implemented by a sub-class.")
 
-    def __getstate__(self):
+    def __getstate__(self) -> Dict[str, Any]:
         return self.__dict__.copy()
 
-    def __setstate__(self, state):
+    def __setstate__(self, state:Dict[str, Any]):
         self.__dict__.update(state)
 
 
 class Attribute(WrapperBase):
     """Wrap ``df.column_name`` or similar access patterns."""
-    def __call__(self, obj, root_obj):
-        """Access attribute of ``obj``.
+    def __call__(self, obj, root_obj) -> Any:
+        """Access attribute of wrapped object.
 
         Parameters
         ----------
         obj
-            Typically the ``~pandas.DataFrame`` or ``~pandas.Series`` to act
-            upon.
+            Anything that can be reached view item-,attribute- or
+            method-calls from a ``~pandas.DataFrame`` or ``~pandas.Series``.
         root_obj
-            The original data frame or series from the context. (Unused)
+            The original data frame or series from the context.
+
+        Returns
+        -------
+        member
+            The referenced member of ``obj``.
         """
         return getattr(obj, self.name)
 
@@ -60,15 +70,20 @@ class Attribute(WrapperBase):
 class Item(WrapperBase):
     """Wrap ``df["column_name"]`` or similar access patterns."""
     def __call__(self, obj, root_obj):
-        """Access attribute of ``obj``.
+        """Access item of wrapped object.
 
         Parameters
         ----------
         obj
-            Typically the ``~pandas.DataFrame`` or ``~pandas.Series`` to act
-            upon.
+            Anything that can be reached view item-,attribute- or
+            method-calls from a ``~pandas.DataFrame`` or ``~pandas.Series``.
         root_obj
-            The original data frame or series from the context. (Unused)
+            The original data frame or series from the context.
+
+        Returns
+        -------
+        member
+            The referenced member of ``obj``.
         """
         return obj[self.name]
 
@@ -107,13 +122,12 @@ class Method(WrapperBase):
         DF["x"].clip(DF["y"].min())
         DF["x"].clip(upper=DF["y"].min())
     """
-    def __init__(self, name: str,
-                 *args, **kwargs):
+    def __init__(self, name: str, *args: Any, **kwargs: Any):
         """
         Parameters
         ----------
         name
-            Operator name, e.g. `__eq__`.
+            Method or operator name, e.g. `mean` or `__eq__`.
         *args, **kwargs
             Optional arguments for the operator, e.g. the second argument for a binary operator.
         """
@@ -121,7 +135,7 @@ class Method(WrapperBase):
         self.args = args
         self.kwargs = kwargs
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         arg_reprs = (
             [f"{a!r}" for a in self.args]
             + [f"{k}={a!r}" for k, a in self.kwargs.items()]
@@ -129,7 +143,7 @@ class Method(WrapperBase):
 
         return f"<{type(self).__name__}: {self.name}({', '.join(arg_reprs)})>"
 
-    def __str__(self):
+    def __str__(self) -> str:
         # Use shorter `str` representation for accessors and `repr` for the
         # rest
         fmt_arg = lambda a: str(a) if isinstance(a, AccessorBase) else repr(a)
@@ -139,12 +153,27 @@ class Method(WrapperBase):
             )
         return f".{self.name}({', '.join(arg_strs)})"
 
-    def _wrap_method_arg(self, arg, root_obj):
+    def _wrap_method_arg(self, arg: Any, root_obj: Union[pd.DataFrame, pd.Series]):
         if isinstance(arg, AccessorBase):
             return arg(root_obj)
         return arg
 
-    def __call__(self, obj, root_obj):
+    def __call__(self, obj: Any, root_obj: Union[pd.DataFrame, pd.Series]) -> Any:
+        """Call method ``self.name`` on ``obj``.
+
+        Parameters
+        ----------
+        obj
+            Anything that can be reached view item-,attribute- or
+            method-calls from a ``~pandas.DataFrame`` or ``~pandas.Series``.
+        root_obj
+            The original data frame or series from the context.
+
+        Returns
+        -------
+        result
+            The result of the method or operator call.
+        """
         op_meth = getattr(obj, self.name)
         return op_meth(
             *[self._wrap_method_arg(arg, root_obj) for arg in self.args],
@@ -219,43 +248,45 @@ def _get_obj_attr_doc(obj: type, attr: str):
 
 
 class AccessorBase:
-    wrapped_cls = None
+    wrapped_cls: Type = object
     def __init__(self,
-                 levels:Union[Sequence[Callable], None]=None):
+                 levels: Optional[Iterable[WrapperBase]]=None):
         """
         Parameters
         ----------
         levels:
-            Sequence of callables to extract attributes from data frames or series.
+            Iterable of callables to extract attributes from data frames or series.
         """
-        self._levels = levels or ()
+        self._levels: Tuple[WrapperBase, ...] = ()
+        if levels is not None:
+            self._levels = tuple(levels)
 
         d = self._get_doc()
         if d:
             self.__doc__ = d
 
-    def __getstate__(self):
+    def __getstate__(self) -> Dict[str, Any]:
         return self.__dict__.copy()
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: Dict[str, Any]):
         self.__dict__.update(state)
 
-    def _get_doc(self):
+    def _get_doc(self) -> Optional[str]:
         return None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{type(self).__name__} {'.'.join(repr(l) for l in self._levels)}>"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return ''.join(str(l) for l in self._levels)
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> 'AccessorBase':
         return type(self)(self._levels + (Attribute(name),))
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> 'AccessorBase':
         return type(self)(self._levels + (Item(key),))
 
-    def _operator_proxy(self, op_name):
+    def _operator_proxy(self, op_name: str) -> Callable:
         """Generate proxy function for built-in operators.
 
         Used by :func:`_add_dunder_operators`
@@ -264,7 +295,7 @@ class AccessorBase:
             return type(self)(self._levels + (Method(op_name, *args, **kwargs),))
         return op_wrapper
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: Any) -> Union[pd.DataFrame, pd.Series, Any]:
         # Heuristic: Assume the selector is applied if exactly one DataFrame
         # or Series argument is passed.
         if len(args) == 1 and isinstance(args[0], self.wrapped_cls):
@@ -308,8 +339,8 @@ class DataframeAccessor(AccessorBase):
     >>> df.assign(y = DF["x"] * 2)
     >>> df
     """
-    wrapped_cls = pd.DataFrame
-    def _get_doc(self):
+    wrapped_cls: Type = pd.DataFrame
+    def _get_doc(self) -> Optional[str]:
         doc = None
         # Assume DataFrame-level function for 1-level accessor
         if len(self._levels) == 1 and isinstance(self._levels[-1].name, str):
@@ -352,7 +383,7 @@ class SeriesAccessor(AccessorBase):
     >>> s[S <= 2]
     """
     wrapped_cls = pd.Series
-    def _get_doc(self):
+    def _get_doc(self) -> Optional[str]:
         doc = None
         # Assume Series-level function for 1-level accessor
         if len(self._levels) == 1 and isinstance(self._levels[-1].name, str):
