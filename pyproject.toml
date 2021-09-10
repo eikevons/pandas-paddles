@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pandas_selector"
-version = "1.0.0"
+version = "1.0.1-dev"
 description = "Simple, composable selectors for loc[], iloc[], assign() and others."
 authors = ["Eike von Seggern <eikevons@mailbox.org>"]
 repository = "https://github.com/eikevons/pandas-selector.git"
