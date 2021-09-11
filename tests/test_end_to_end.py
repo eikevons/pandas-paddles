@@ -30,12 +30,8 @@ def test_DF_end_to_end(df):
     })
     return pd.testing.assert_frame_equal(test, expected)
 
-@pytest.mark.parametrize(
-    "selector,expected",
-    [
-    ]
-)
-def test_S_end_to_end(ser, selector, expected):
+
+def test_S_end_to_end(ser):
     test = ser[S < 2]
     expected = pd.Series(range(2))
     return pd.testing.assert_series_equal(test, expected)
