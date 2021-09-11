@@ -13,10 +13,12 @@ from pandas_selector import DF, S
         (DF.a.str.match, pd.Series.str.match.__doc__),
         (DF['a'].dt.tz_convert, pd.Series.dt.tz_convert.__doc__),
         (DF['a'].str.match, pd.Series.str.match.__doc__),
+        (DF['a'].unknown, DF.__doc__),
         (S.sum, pd.Series.sum.__doc__),
         (S.isin, pd.Series.isin.__doc__),
         (S.dt.tz_convert, pd.Series.dt.tz_convert.__doc__),
         (S.str.match, pd.Series.str.match.__doc__),
+        (S.str.unknown, S.__doc__),
         ]
     )
 

@@ -201,7 +201,7 @@ class Method(WrapperBase):
         op_meth = getattr(obj, self.name)
         return op_meth(
             *[self._evaluate_method_arg(arg, root_obj) for arg in self.args],
-            **{k: self._wrap_method_arg(arg, root_obj) for k, arg in self.kwargs.items()}
+            **{k: self._evaluate_method_arg(arg, root_obj) for k, arg in self.kwargs.items()}
         )
 
 
@@ -264,6 +264,7 @@ def _add_dunder_operators(cls):
 
 
 def _get_obj_attr_doc(obj: type, attr: str):
+    """Get doc-string for attribute ``attr`` of ``obj`` if it exists."""
     if isinstance(attr, str):
         a = getattr(obj, attr, None)
         if a:
