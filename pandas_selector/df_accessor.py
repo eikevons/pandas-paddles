@@ -24,7 +24,7 @@ class WrapperBase:
         Parameters
         ----------
         obj
-            Anything that can be reached view item-,attribute- or
+            Anything that can be reached view item-, attribute-, or
             method-calls from a ``~pandas.DataFrame`` or ``~pandas.Series``.
         root_obj
             The original data frame or series from the context.
@@ -51,7 +51,7 @@ class Attribute(WrapperBase):
         Parameters
         ----------
         obj
-            Anything that can be reached view item-,attribute- or
+            Anything that can be reached view item-, attribute-, or
             method-calls from a ``~pandas.DataFrame`` or ``~pandas.Series``.
         root_obj
             The original data frame or series from the context.
@@ -75,7 +75,7 @@ class Item(WrapperBase):
         Parameters
         ----------
         obj
-            Anything that can be reached view item-,attribute- or
+            Anything that can be reached view item-, attribute-, or
             method-calls from a ``~pandas.DataFrame`` or ``~pandas.Series``.
         root_obj
             The original data frame or series from the context.
@@ -128,8 +128,9 @@ class Method(WrapperBase):
         ----------
         name
             Method or operator name, e.g. `mean` or `__eq__`.
-        *args, **kwargs
-            Optional arguments for the operator, e.g. the second argument for a binary operator.
+        args, kwargs
+            (Optional) arguments for the method or operator, e.g. the second
+            argument for a binary operator.
         """
         super().__init__(name)
         self.args = args
@@ -153,7 +154,30 @@ class Method(WrapperBase):
             )
         return f".{self.name}({', '.join(arg_strs)})"
 
-    def _wrap_method_arg(self, arg: Any, root_obj: Union[pd.DataFrame, pd.Series]):
+    def _evaluate_method_arg(self, arg: Any, root_obj: Union[pd.DataFrame, pd.Series]):
+        """Evaluatue any ``DF``- or ``S``-based arguments for the method
+        call.
+
+        This is needed to support things like (``DF['x'].mean()`` will be
+        evaluated with ``df``)::
+
+            df.assign(
+              y = DF['x'].clip(low=DF['x'].mean() - 0.5)
+            )
+
+        Parameters
+        ----------
+        arg
+            The method argument.
+        root_obj
+            The dataframe or series to evaluate ``arg`` with.
+
+        Returns
+        -------
+        eval_arg
+            Evaluated method argument if the argument is ``DF`` or ``S``
+            based, else just ``arg``.
+        """
         if isinstance(arg, AccessorBase):
             return arg(root_obj)
         return arg
@@ -176,7 +200,7 @@ class Method(WrapperBase):
         """
         op_meth = getattr(obj, self.name)
         return op_meth(
-            *[self._wrap_method_arg(arg, root_obj) for arg in self.args],
+            *[self._evaluate_method_arg(arg, root_obj) for arg in self.args],
             **{k: self._wrap_method_arg(arg, root_obj) for k, arg in self.kwargs.items()}
         )
 
