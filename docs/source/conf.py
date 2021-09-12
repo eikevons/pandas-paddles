@@ -12,6 +12,8 @@
 #
 import os
 import sys
+from subprocess import getstatusoutput
+from warnings import warn
 
 sys.path.insert(0, os.path.abspath("../.."))
 
@@ -29,7 +31,6 @@ version = pandas_selector.__version__
 
 # The full version, including alpha/beta/rc tags
 release = version
-
 
 # -- General configuration ---------------------------------------------------
 
@@ -77,3 +78,44 @@ autodoc_typehints = "description"
 intersphinx_mapping = {
     "pandas": ("https://pandas.pydata.org/pandas-docs/dev", None),
 }
+
+# Configuration for pydata sphinx theme
+
+# https://pydata-sphinx-theme.readthedocs.io/en/latest/user_guide/configuring.html#adding-ethical-advertisements-to-your-sidebar-in-readthedocs
+html_sidebars = {
+    "**": ["search-field.html", "sidebar-nav-bs.html", "sidebar-ethical-ads.html"]
+}
+
+html_theme_options = {
+    "footer_items": ["footer-version", "copyright", "sphinx-version"],
+}
+
+# Allow Jinja templating in source rst files.
+# Adapted from https://www.ericholscher.com/blog/2016/jul/25/integrating-jinja-rst-sphinx/
+def rstjinja(app, docname, source):
+    """
+    Render our pages as a jinja template for fancy templating goodness.
+    """
+    # Make sure we're outputting HTML
+    if app.builder.format != 'html':
+        return
+    src = source[0]
+    rendered = app.builder.templates.render_string(
+        src, app.config.html_context
+    )
+    source[0] = rendered
+
+html_context = {
+    'project': project,
+    'version': version,
+}
+
+def setup(app):
+    app.connect("source-read", rstjinja)
+
+ret, out = getstatusoutput('git rev-parse --short HEAD')
+if ret == 0:
+    githash = out
+    html_context['githash'] = githash
+else:
+    warn(f'git rev-parse returned {ret}: {out}')

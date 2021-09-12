@@ -5,6 +5,7 @@ RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/
  && apt-get update \
  && apt-get install --yes --no-install-recommends \
     bash \
+    git \
     jq \
     make \
     vim \

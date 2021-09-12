@@ -1,0 +1,5 @@
+<!-- This will display the version of the docs -->
+{{project}} version {{ version }}
+{% if githash is defined %}
+    (<a href="https://github.com/eikevons/pandas-selector/commit/{{githash}}">{{githash}}</a>)
+{% endif %}

@@ -3,6 +3,12 @@ Welcome to Pandas Selector's documentation!
 
 .. toctree::
 
+{% if githash is defined %}
+{{project}} documentation for version ``{{version}}`` (`{{githash}} <https://github.com/eikevons/pandas-selector/commit/{{githash}}>`_).
+{% else %}
+{{project}} documentation for version ``{{version}}``.
+{% endif %}
+
 .. automodule:: pandas_selector
 
 .. 
