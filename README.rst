@@ -3,7 +3,9 @@ Pandas Selector
 
 Access the calling ``pandas`` data frame in ``loc[]``, ``iloc[]``,
 ``assign()`` and other methods with ``DF`` to write better chains of
-data frame operations, e.g.::
+data frame operations, e.g.:
+
+.. code-block:: python
 
     df = (df
           # Select all rows with column "x" < 2
