@@ -28,7 +28,7 @@ data frame operations, e.g.:
 .. image:: https://github.com/eikevons/pandas-selector/actions/workflows/check.yml/badge.svg
   :target: https://github.com/eikevons/pandas-selector/actions/workflows/check.yml
   :alt: Test Status
-.. image:: https://img.shields.io/pypi/dm/pandas-selector?label=PyPI%20downloads
+.. image:: https://img.shields.io/pypi/dm/pandas-selector
    :target: https://pypi.org/project/pandas-selector/
    :alt: PyPI downloads
 
