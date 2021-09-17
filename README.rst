@@ -28,6 +28,12 @@ data frame operations, e.g.:
 .. image:: https://github.com/eikevons/pandas-selector/actions/workflows/check.yml/badge.svg
   :target: https://github.com/eikevons/pandas-selector/actions/workflows/check.yml
   :alt: Test Status
+.. image:: https://img.shields.io/pypi/v/pandas-selector
+   :target: https://pypi.org/project/pandas-selector/
+   :alt: Latest version
+.. image:: https://img.shields.io/pypi/pyversions/pandas-selector
+   :target: https://pypi.org/project/pandas-selector/
+   :alt: Supported Python versions
 .. image:: https://img.shields.io/pypi/dm/pandas-selector
    :target: https://pypi.org/project/pandas-selector/
    :alt: PyPI downloads
