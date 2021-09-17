@@ -40,9 +40,9 @@ def test_multilevel_column_by_attr_and_key(multilevel_df):
     expected = multilevel_df.x["B"]
     return pd.testing.assert_series_equal(expected, DF.x["B"](multilevel_df))
 
-def test_multilevel_column_by_key_and_item(multilevel_df):
-    expected = multilevel_df.x["B"]
-    return pd.testing.assert_series_equal(expected, DF.x["B"](multilevel_df))
+def test_multilevel_column_by_key_and_attr(multilevel_df):
+    expected = multilevel_df["x"].B
+    return pd.testing.assert_series_equal(expected, DF["x"].B(multilevel_df))
 
 def test_multilevel_column_by_tuple_key(multilevel_df):
     expected = multilevel_df[("x", "B")]

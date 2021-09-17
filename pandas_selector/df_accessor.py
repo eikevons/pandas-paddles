@@ -1,7 +1,10 @@
 
-from typing import Any, Callable, Dict, Iterable, Optional, Union, Tuple, Type
+from typing import Any, Callable, ClassVar, Dict, Iterable, Optional, Union, Tuple, Type
 
 import pandas as pd
+
+# The context in which the wrappers might be used
+PdContext = Union[pd.DataFrame, pd.Series]
 
 # Wrappers for attribute, item and operator access
 class WrapperBase:
@@ -18,7 +21,7 @@ class WrapperBase:
     def __repr__(self) -> str:
         return f"<{type(self).__name__} {self.name}>"
 
-    def __call__(self, obj: Any, root_obj: Union[pd.DataFrame,pd.Series]) -> Any: 
+    def __call__(self, obj: Any, root_obj: PdContext) -> Any: 
         """Access member of wrapped object.
 
         Parameters
@@ -45,7 +48,7 @@ class WrapperBase:
 
 class Attribute(WrapperBase):
     """Wrap ``df.column_name`` or similar access patterns."""
-    def __call__(self, obj, root_obj) -> Any:
+    def __call__(self, obj, root_obj: PdContext) -> Any:
         """Access attribute of wrapped object.
 
         Parameters
@@ -69,7 +72,7 @@ class Attribute(WrapperBase):
 
 class Item(WrapperBase):
     """Wrap ``df["column_name"]`` or similar access patterns."""
-    def __call__(self, obj, root_obj):
+    def __call__(self, obj, root_obj: PdContext):
         """Access item of wrapped object.
 
         Parameters
@@ -154,7 +157,7 @@ class Method(WrapperBase):
             )
         return f".{self.name}({', '.join(arg_strs)})"
 
-    def _evaluate_method_arg(self, arg: Any, root_obj: Union[pd.DataFrame, pd.Series]):
+    def _evaluate_method_arg(self, arg: Any, root_obj: PdContext):
         """Evaluatue any ``DF``- or ``S``-based arguments for the method
         call.
 
@@ -182,7 +185,7 @@ class Method(WrapperBase):
             return arg(root_obj)
         return arg
 
-    def __call__(self, obj: Any, root_obj: Union[pd.DataFrame, pd.Series]) -> Any:
+    def __call__(self, obj: Any, root_obj: PdContext) -> Any:
         """Call method ``self.name`` on ``obj``.
 
         Parameters
@@ -263,17 +266,17 @@ def _add_dunder_operators(cls):
     return cls
 
 
-def _get_obj_attr_doc(obj: type, attr: str):
-    """Get doc-string for attribute ``attr`` of ``obj`` if it exists."""
+def _get_obj_attr_doc(obj_or_class: Any, attr: str):
+    """Get doc-string for attribute ``attr`` of ``obj_or_class`` if it exists."""
     if isinstance(attr, str):
-        a = getattr(obj, attr, None)
+        a = getattr(obj_or_class, attr, None)
         if a:
             return a.__doc__
     return None
 
 
 class AccessorBase:
-    wrapped_cls: Type = object
+    wrapped_cls: ClassVar[Type] = type('NotABaseOfAnything', (), {})
     def __init__(self,
                  levels: Optional[Iterable[WrapperBase]]=None):
         """
@@ -364,7 +367,7 @@ class DataframeAccessor(AccessorBase):
     >>> df.assign(y = DF["x"] * 2)
     >>> df
     """
-    wrapped_cls: Type = pd.DataFrame
+    wrapped_cls = pd.DataFrame
     def _get_doc(self) -> Optional[str]:
         doc = None
         # Assume DataFrame-level function for 1-level accessor
