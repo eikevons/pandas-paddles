@@ -21,7 +21,7 @@ class WrapperBase:
     def __repr__(self) -> str:
         return f"<{type(self).__name__} {self.name}>"
 
-    def __call__(self, obj: Any, root_obj: PdContext) -> Any: 
+    def __call__(self, obj: Any, root_obj: PdContext) -> Any:
         """Access member of wrapped object.
 
         Parameters
@@ -276,6 +276,7 @@ def _get_obj_attr_doc(obj_or_class: Any, attr: str):
 
 
 class AccessorBase:
+    """Abstract base-class for DataFrame and Series context accessors."""
     wrapped_cls: ClassVar[Type] = type('NotABaseOfAnything', (), {})
     def __init__(self,
                  levels: Optional[Iterable[WrapperBase]]=None):
@@ -289,9 +290,8 @@ class AccessorBase:
         if levels is not None:
             self._levels = tuple(levels)
 
-        d = self._get_doc()
-        if d:
-            self.__doc__ = d
+        # Update the doc-string if possible
+        self.__doc__ = self._get_doc()
 
     def __getstate__(self) -> Dict[str, Any]:
         return self.__dict__.copy()
@@ -300,7 +300,7 @@ class AccessorBase:
         self.__dict__.update(state)
 
     def _get_doc(self) -> Optional[str]:
-        return None
+        return type(self).__doc__
 
     def __repr__(self) -> str:
         return f"<{type(self).__name__} {'.'.join(repr(l) for l in self._levels)}>"
@@ -369,21 +369,25 @@ class DataframeAccessor(AccessorBase):
     """
     wrapped_cls = pd.DataFrame
     def _get_doc(self) -> Optional[str]:
-        doc = None
+        doc = super()._get_doc()
         # Assume DataFrame-level function for 1-level accessor
         if len(self._levels) == 1 and isinstance(self._levels[-1].name, str):
-            doc = _get_obj_attr_doc(self.wrapped_cls, self._levels[-1].name)
+            doc = _get_obj_attr_doc(self.wrapped_cls, self._levels[-1].name) or doc
         # Check for typed Series accessors for 3+-level accessor
         elif len(self._levels) >= 3 and self._levels[-2].name in ('dt', 'str'):
-            doc = _get_obj_attr_doc(
-                getattr(pd.Series, self._levels[-2].name),
-                self._levels[-1].name,
+            doc = (
+                _get_obj_attr_doc(
+                    getattr(pd.Series, self._levels[-2].name),
+                    self._levels[-1].name,
                 )
+                or doc
+            )
         # Check for Series-level function for 2+-level accessor
         elif len(self._levels) > 1:
-            doc = _get_obj_attr_doc(pd.Series, self._levels[-1].name)
+            doc = _get_obj_attr_doc(pd.Series, self._levels[-1].name) or doc
 
         return doc
+
 
 
 @_add_dunder_operators # This is necessary to overload all dunder operators.
@@ -412,15 +416,18 @@ class SeriesAccessor(AccessorBase):
     """
     wrapped_cls = pd.Series
     def _get_doc(self) -> Optional[str]:
-        doc = None
+        doc = super()._get_doc()
         # Assume Series-level function for 1-level accessor
         if len(self._levels) == 1 and isinstance(self._levels[-1].name, str):
-            doc = _get_obj_attr_doc(self.wrapped_cls, self._levels[-1].name)
+            doc = _get_obj_attr_doc(self.wrapped_cls, self._levels[-1].name) or doc
         # Check for typed Series accessors
         elif len(self._levels) > 1 and self._levels[0].name in ('dt', 'str'):
-            doc = _get_obj_attr_doc(
-                getattr(pd.Series, self._levels[0].name),
-                self._levels[-1].name,
+            doc = (
+                _get_obj_attr_doc(
+                    getattr(pd.Series, self._levels[0].name),
+                    self._levels[-1].name,
                 )
+                or doc
+            )
 
         return doc
