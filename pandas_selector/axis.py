@@ -67,28 +67,40 @@ class Selection:
 
 # Column selection operator closures
 class LabelSelectionOp:
-    def __init__(self, labels):
+    def __init__(self, labels, level=None):
         if isinstance(labels, list):
             labels = tuple(labels)
         elif not isinstance(labels, tuple):
             labels = (labels,)
-        self._labels = labels
+        self.labels = labels
+        self.level=level
 
     def __call__(self, df):
-        return Selection(order=list(self._labels))
+        if self.level is None:
+            order = list(self.labels)
+        else:
+            order = []
+            lvl = df.columns.get_level_values(self.level)
+            for l in self.labels:
+                order.extend(df.columns[lvl == l].to_list())
 
-    def __str__(self):
-        return f"<{type(self)} {list(self._labels)}>"
+        return Selection(order=order)
 
 
 class LabelMatchOp:
-    def __init__(self, meth, args, kwargs):
+    def __init__(self, meth, args, kwargs, level=None):
         self.meth = meth
         self.args = args
         self.kwargs = kwargs
+        self.level = level
 
     def __call__(self, df):
-        meth = getattr(df.columns.str, self.meth)
+        if self.level is None:
+            str_accessor = df.columns.str
+        else:
+            str_accessor = df.columns.get_level_values(self.level).str
+
+        meth = getattr(str_accessor, self.meth)
         mask = meth(*self.args, **self.kwargs)
         return Selection(mask=mask)
 
@@ -191,21 +203,30 @@ class OpComposerBase:
         return selection.evaluate(df)
 
 
-class LabelComposerMixin:
+class LabelComposer(OpComposerBase):
+    def __init__(self, op=None, level=None):
+        super().__init__(op)
+        self.level = level
+
     def __getitem__(self, labels):
-        return OpComposerBase(LabelSelectionOp(labels))
+        return OpComposerBase(LabelSelectionOp(labels, self.level))
 
     def startswith(self, *args, **kwargs):
-        return OpComposerBase(LabelMatchOp("startswith", args, kwargs))
+        return OpComposerBase(LabelMatchOp("startswith", args, kwargs, self.level))
 
     def endswith(self, *args, **kwargs):
-        return OpComposerBase(LabelMatchOp("endswith", args, kwargs))
+        return OpComposerBase(LabelMatchOp("endswith", args, kwargs, self.level))
 
     def contains(self, *args, **kwargs):
-        return OpComposerBase(LabelMatchOp("contains", args, kwargs))
+        return OpComposerBase(LabelMatchOp("contains", args, kwargs, self.level))
 
     def match(self, *args, **kwargs):
-        return OpComposerBase(LabelMatchOp("match", args, kwargs))
+        return OpComposerBase(LabelMatchOp("match", args, kwargs, self.level))
+
+
+class LeveledComposer:
+    def __getitem__(self, level):
+        return LabelComposer(level=level)
 
 
 class DtypeComposer:
@@ -219,11 +240,11 @@ class DtypeComposer:
         raise NotImplementedError("isin currently not implemented")
 
 
-class SelectionComposer(OpComposerBase, LabelComposerMixin):
+class SelectionComposer(LabelComposer):
     def __init__(self, op=None):
         super().__init__(op=op)
         self.dtype = DtypeComposer()
-
+        self.levels = LeveledComposer()
 
 
 C = SelectionComposer()
