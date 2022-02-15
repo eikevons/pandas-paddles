@@ -1,5 +1,6 @@
 import operator
 from typing import Optional
+from warnings import warn
 
 import numpy as np
 
@@ -231,6 +232,13 @@ class SelectionComposer(LabelComposer):
         super().__init__(op=op)
         self.dtype = DtypeComposer()
         self.levels = LeveledComposer()
+
+    # Warn about experimental status of this feature.
+    # TODO: Remove once API is stable
+    def __getattribute__(self, name):
+        attr = super().__getattribute__(name)
+        warn("Column selection is an experimental feature! The API might change in minor version update.", stacklevel=2)
+        return attr
 
 
 C = SelectionComposer()
