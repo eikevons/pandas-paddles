@@ -1,3 +1,4 @@
+"""Access data frame/series from context in ``.loc[]``, ``.iloc[]``, ``.assign()``, and others."""
 
 from typing import Any, Callable, ClassVar, Dict, Iterable, Optional, Union, Tuple, Type
 
@@ -338,7 +339,7 @@ class AccessorBase:
 
 @_add_dunder_operators # This is necessary to overload all dunder operators.
 class DataframeAccessor(AccessorBase):
-    """Build callable for column access and operators.
+    """Build callable to access columns and operators.
 
     Use the global instance like::
 

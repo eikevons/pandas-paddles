@@ -2,11 +2,19 @@
 Pandas Selector
 ---------------
 
+*Write concise chained data-frame operations.*
+
 Just use ``DF`` in arguments to :attr:`~pandas.DataFrame.loc`,
 :attr:`~pandas.DataFrame.iloc`, :meth:`~pandas.DataFrame.assign()` and other
 methods to access columns, methods, and attributes of the calling data frame
-(use ``S`` when dealing with :class:`pandas.Series`). This allows to write
-chains of operations much more concisely. See `Comparison`_ below.
+(use ``S`` when dealing with :class:`pandas.Series`). Select columns in
+:attr:`~pandas.DataFrame.loc` with ``C``. This allows to write chains of
+operations much more concisely. See `Comparison`_ below.
+
+* ``DF`` and ``S`` give you access to all data frame/series attributes where
+  Pandas allows to pass a callback to handle the contextual object. (See `DataFrame examples`_ and `Series examples`_)
+* ``C`` can be used to simplify column selection in
+  :attr:`~pandas.DataFrame.loc` by column name or data type. (See `Column selection`_)
 
 DataFrame examples
 ~~~~~~~~~~~~~~~~~~
@@ -102,6 +110,54 @@ dtype: int64
 8    8
 dtype: int64
 
+Column selection
+~~~~~~~~~~~~~~~~
+
+Move some columns to the left of the data frame. ``...`` is used to include all other columns at the end.
+
+>>> from pandas_selector import C
+>>> df = pd.DataFrame({"x": 1, "y": 3.14, "z": "abc", "u": 42}, index=[0])
+>>> df.loc[:, C["y", "u"] + ...]
+      y   u  x    z
+0  3.14  42  1  abc
+
+Select by "simple" dtype
+
+>>> df.loc[:, C.dtype == int]
+   x   u
+0  1  42
+
+Select by "complex" dtype
+
+>>> df.loc[:, C.dtype == str]
+     z
+0  abc
+
+Select by multiple dtypes
+
+>>> df.loc[:, C.dtype.isin((int, float))]
+   x     y   u
+0  1  3.14  42
+
+Select by multi-index level
+
+>>> midf = pd.DataFrame.from_records(
+... data=[range(9)],
+... index=[0],
+... columns=pd.MultiIndex.from_product([["a", "b", "c"], ["x", "y", "z"]], names=["one", "two"]))
+>>> midf
+one  a        b        c      
+two  x  y  z  x  y  z  x  y  z
+0    0  1  2  3  4  5  6  7  8
+>>> midf.loc[:, C.levels[0]["b", "c"] + ...]
+one  b        c        a      
+two  x  y  z  x  y  z  x  y  z
+0    3  4  5  6  7  8  0  1  2
+>>>  midf.loc[:, (C.levels[0]["b", "c"] + ...) & C.levels[1]["z"]]
+one  b  c  a
+two  z  z  z
+0    5  8  2
+
 Comparison
 ~~~~~~~~~~
 
@@ -135,6 +191,8 @@ __version__ = "1.2.0-dev"
 __all__ = ["DF", "S"]
 
 from .df_accessor import DataframeAccessor, SeriesAccessor
+from .axis import SelectionComposer
 
 DF = DataframeAccessor()
 S = SeriesAccessor()
+C = SelectionComposer()
