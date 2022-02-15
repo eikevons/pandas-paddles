@@ -16,50 +16,30 @@ def combine_nones(a, b, fn_both):
 
 class Selection:
     """Container for selection along a data frame axis with combination logic."""
-    def __init__(self, *, mask=None, order=None):
-        self.mask = mask
-        self.order = order
+    def __init__(self, indices=None, mask=None):
+        if mask is not None:
+            if indices is not None:
+                raise ValueError("indices and mask cannot be passed together")
+            indices = np.nonzero(mask)[0].tolist()
 
-    def evaluate(self, df) -> list:
-        """Build list of selected axis labels."""
-        # Empty selections act as a no-op pass-through
-        if self.order is None and self.mask is None:
-            return df
-
-        sel = []
-        if self.order is not None:
-            for c in self.order:
-                if c in df.columns:
-                    sel.append(c)
-                else:
-                    raise ValueError(f"Columns {c!r} not found in data frame columns: {df.columns!r}")
-        if self.mask is not None:
-            for c in df.columns[self.mask]:
-                if c not in sel:
-                    sel.append(c)
-
-        return sel
+        self.indices = indices
 
     def __and__(self, other):
-        mask = combine_nones(self.mask, other.mask, operator.and_)
-
-        def and_order(a, b):
+        def and_indices(a, b):
             r = []
-            for l in a:
-                if l in b:
-                    r.append(l)
+            for i in a:
+                if i in b:
+                    r.append(i)
             return r
-        order = combine_nones(self.order, other.order, and_order)
-        return Selection(mask, order)
+        indices = combine_nones(self.indices, other.indices, and_indices)
+        return Selection(indices)
 
     def __or__(self, other):
-        mask = combine_nones(self.mask, other.mask, operator.or_)
-
-        def or_order(a, b):
+        def or_indices(a, b):
             return a + [i for i in b if i not in a]
 
-        order = combine_nones(self.order, other.order, or_order)
-        return Selection(mask=mask, order=order)
+        indices = combine_nones(self.indices, other.indices, or_indices)
+        return Selection(indices)
 
     def __add__(self, other):
         return self | other
@@ -76,15 +56,17 @@ class LabelSelectionOp:
         self.level=level
 
     def __call__(self, df):
+        idx = np.arange(len(df.columns))
         if self.level is None:
-            order = list(self.labels)
+            cands = df.columns
         else:
-            order = []
-            lvl = df.columns.get_level_values(self.level)
-            for l in self.labels:
-                order.extend(df.columns[lvl == l].to_list())
+            cands = df.columns.get_level_values(self.level)
 
-        return Selection(order=order)
+        indices = []
+        for lbl in self.labels:
+            indices.extend(idx[cands == lbl])
+
+        return Selection(indices)
 
 
 class LabelMatchOp:
@@ -122,23 +104,27 @@ class BinaryOp:
         return self.op(sel_left, sel_right)
 
 
-class DtypeEqualOp:
-    def __init__(self, dtype, sample_size=10):
-        self.dtype = dtype
+class DtypesOp:
+    def __init__(self, dtypes, sample_size=10):
+        self.dtypes = dtypes
         self.sample_size = sample_size
 
     def __call__(self, df):
-        for typ in (str, bytes):
-            if self.dtype in (typ, typ.__name__):
-                mask = (df.sample(min(len(df), self.sample_size))
-                        .applymap(lambda i: isinstance(i, typ))
-                        .agg("all")
-                       )
-                break
-        else:
-            mask = (df.dtypes == self.dtype).values
+        mask = np.zeros(len(df.columns), dtype=bool)
+        for dtype in self.dtypes:
+            for typ in (str, bytes):
+                if dtype in (typ, typ.__name__):
+                    mask |= (df.sample(min(len(df), self.sample_size))
+                            .applymap(lambda i: isinstance(i, typ))
+                            .agg("all")
+                            .values
+                           )
+                    break
+            else:
+                mask |= (df.dtypes == dtype).values
 
         return Selection(mask=mask)
+
 
 
 # Objects to create, compose, and evaluate column selection operators
@@ -200,7 +186,7 @@ class OpComposerBase:
 
     def __call__(self, df):
         selection = self.op(df)
-        return selection.evaluate(df)
+        return df.columns[selection.indices]
 
 
 class LabelComposer(OpComposerBase):
@@ -234,10 +220,10 @@ class DtypeComposer:
         self.sample_size = sample_size
 
     def __eq__(self, dtype):
-        return OpComposerBase(DtypeEqualOp(dtype, self.sample_size))
+        return OpComposerBase(DtypesOp((dtype,), self.sample_size))
 
     def isin(self, dtypes):
-        raise NotImplementedError("isin currently not implemented")
+        return OpComposerBase(DtypesOp(dtypes, self.sample_size))
 
 
 class SelectionComposer(LabelComposer):
