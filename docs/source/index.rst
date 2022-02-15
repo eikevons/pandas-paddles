@@ -25,6 +25,7 @@ API
    :template: custom-module-template.rst
 
    pandas_selector.df_accessor
+   pandas_selector.axis
 
 
 Indices and tables
