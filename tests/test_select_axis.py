@@ -14,9 +14,10 @@ def cols(df: pd.DataFrame, col_sel: OpComposerBase) -> list:
 def simple_df():
     return pd.DataFrame(
         {
-            "x": [1, 2, 3, 4, 5],
-            "y": [1, 2, 5, 5, 4],
+            "x": range(5),
+            "y": range(5),
             "z": list("abcde"),
+            "u": 1.0,
         }
     )
 
@@ -43,7 +44,7 @@ def test_combine(simple_df):
 
 def test_ellipsis(simple_df):
     col_sel = C["y"] | ...
-    assert cols(simple_df, col_sel) == ["y", "x", "z"]
+    assert cols(simple_df, col_sel) == ["y", "x", "z", "u"]
 
 
 def test_startswith(simple_df):
@@ -64,6 +65,11 @@ def test_str_dtype(simple_df):
 def test_int_dtype(simple_df):
     col_sel = C.dtype == int
     assert cols(simple_df, col_sel) == ["x", "y"]
+
+
+def test_dtype_isin(simple_df):
+    col_sel = C.dtype.isin((str, float))
+    assert cols(simple_df, col_sel) == ["z", "u"]
 
 
 def test_level0_subset(mi_df):
