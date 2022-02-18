@@ -110,6 +110,7 @@ def test_level0_str_methods(mi_df):
 
 
 def test_level0_composition(mi_df):
+    col_sel = C.levels[0]['c'] | ...
     expected = [
         ("c", "X"),
         ("c", "Y"),
@@ -121,5 +122,47 @@ def test_level0_composition(mi_df):
         ("b", "Y"),
         ("b", "Z"),
     ]
-    col_sel = C.levels[0]['c'] | ...
     assert cols(mi_df, col_sel) == expected
+
+
+def test_combine_complex(mi_df):
+    # Move (c, [X, Y]) to the left
+    col_sel =  (C.levels[0]['c'] & C.levels[1]["X", "Y"]) | ...
+    expected = [
+        ("c", "X"),
+        ("c", "Y"),
+        ("a", "X"),
+        ("a", "Y"),
+        ("a", "Z"),
+        ("b", "X"),
+        ("b", "Y"),
+        ("b", "Z"),
+        ("c", "Z"),
+    ]
+    assert cols(mi_df, col_sel) == expected
+
+    # Select (b, [Y, X, Z]) to the left
+    col_sel = (C.levels[0]["b"] & (C.levels[1]["Y"] | ...)) | ...
+    expected = [
+        ("b", "Y"),
+        ("b", "X"),
+        ("b", "Z"),
+        ("a", "X"),
+        ("a", "Y"),
+        ("a", "Z"),
+        ("c", "X"),
+        ("c", "Y"),
+        ("c", "Z"),
+    ]
+    assert cols(mi_df, col_sel) == expected
+
+    # Select (b, [Y]) + (c, *)
+    col_sel = (C.levels[0]["b"] & C.levels[1]["Y"]) | C.levels[0]["c"]
+    expected = [
+        ("b", "Y"),
+        ("c", "X"),
+        ("c", "Y"),
+        ("c", "Z"),
+    ]
+    assert cols(mi_df, col_sel) == expected
+
