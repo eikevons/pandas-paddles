@@ -23,8 +23,8 @@ class Selection:
     def __and__(self, other: "Selection") -> "Selection":
         def and_indices(a, b):
             r = []
-            for i in a:
-                if i in b:
+            for i in b:
+                if i in a:
                     r.append(i)
             return r
         indices = _combine_nones(self.indices, other.indices, and_indices)
@@ -268,7 +268,7 @@ class SelectionComposer(LabelComposer):
 
         # Move columns x, z to left
         from pandas_selector import C
-        df.loc[:, C["x", "z"] + ...]
+        df.loc[:, C["x", "z"] | ...]
 
     Other use-cases:
 
@@ -288,7 +288,16 @@ class SelectionComposer(LabelComposer):
         df.loc[:, C.startswith("PRE")]
         # or just move them to the left and keep the remaining columns in
         # the data frame
-        df.loc[:, C.startswith("PRE") + ...]
+        df.loc[:, C.startswith("PRE") | ...]
+
+    Selections can be combined with ``&`` (intersection) and ``|`` or ``+``
+    (union). In intersections, the right-most order takes precedence, while
+    it's the left-most for unions, e.g. the following will select all
+    columns with first-level label "b" starting with the columns with
+    second-level labels "Y" and "Z" followed by all other second-level
+    labels with first-level "b"::
+
+        C.levels[0]["b"] & (C.levels[1]["Y"] | ...)
     """
     def __init__(self, op=None, sample_size=None):
         super().__init__(op=op)
