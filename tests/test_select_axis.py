@@ -1,8 +1,8 @@
 import pandas as pd
 import pytest
 
-
-from pandas_selector.axis import C, OpComposerBase
+from pandas_selector import C
+from pandas_selector.axis import OpComposerBase
 
 
 def cols(df: pd.DataFrame, col_sel: OpComposerBase) -> list:
@@ -166,3 +166,54 @@ def test_combine_complex(mi_df):
     ]
     assert cols(mi_df, col_sel) == expected
 
+
+def test_inversion_basic(simple_df):
+    col_sel = ~C["y"]
+    assert cols(simple_df, col_sel) == ["x", "z", "u"]
+
+
+def test_inversion_complex(mi_df):
+    # Exclude (b, [Y]) + (c, *)
+    col_sel = ~((C.levels[0]["b"] & C.levels[1]["Y"]) | C.levels[0]["c"])
+    expected = [
+        ("a", "X"),
+        ("a", "Y"),
+        ("a", "Z"),
+        ("b", "X"),
+        ("b", "Z"),
+    ]
+    assert cols(mi_df, col_sel) == expected
+
+def test_inversion_composition(mi_df):
+    # Select (*, ~[Y, Z])
+    sel_1 = ... & ~C.levels[1]["Y", "Z"]
+    expected_1 = [
+        ("a", "X"),
+        ("b", "X"),
+        ("c", "X"),
+    ]
+    assert cols(mi_df, sel_1) == expected_1
+
+    # Select (b, *)
+    sel_2 = C.levels[0]["b"]
+    expected_2 = [
+        ("b", "X"),
+        ("b", "Y"),
+        ("b", "Z"),
+    ]
+    assert cols(mi_df, sel_2) == expected_2
+
+    # Select (b, *) + (*, ~[Y, Z])
+    sel_composed = sel_2 | sel_1
+    expected_composed = [
+        ("b", "X"),
+        ("b", "Y"),
+        ("b", "Z"),
+        ("a", "X"),
+        ("c", "X"),
+    ]
+
+    test = cols(mi_df, sel_composed)
+    print(test)
+    print(expected_composed)
+    assert test == expected_composed
