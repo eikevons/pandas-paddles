@@ -355,6 +355,10 @@ class SelectionComposer(LabelComposer):
     Inversion (negation) of selections is possible with ``~``, e.g. to select all but first-level label "b"::
 
         ~C.levels[0]["b"]
+
+    This can also be applied to composed selections::
+
+        ~(C.levels[0]["b"] | C.levels[1]["X", "Y"])
     """
     def __init__(self, op=None, sample_size=None):
         super().__init__(op=op)
