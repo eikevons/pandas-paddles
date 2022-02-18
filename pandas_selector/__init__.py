@@ -113,11 +113,13 @@ dtype: int64
 Column selection
 ~~~~~~~~~~~~~~~~
 
-Move some columns to the left of the data frame. ``...`` is used to include all other columns at the end.
+See :class:`~pandas_selector.axis.SelectionComposer` for complete API documentation.
+
+Move some columns to the left of the data frame. ``...`` is used to include all other columns at the end and the typical logical operators ``&``, ``|`` (or ``+``), and ``~`` to compose selections
 
 >>> from pandas_selector import C
 >>> df = pd.DataFrame({"x": 1, "y": 3.14, "z": "abc", "u": 42}, index=[0])
->>> df.loc[:, C["y", "u"] + ...]
+>>> df.loc[:, C["y", "u"] | ...]
       y   u  x    z
 0  3.14  42  1  abc
 
@@ -149,11 +151,11 @@ Select by multi-index level
 one  a        b        c      
 two  x  y  z  x  y  z  x  y  z
 0    0  1  2  3  4  5  6  7  8
->>> midf.loc[:, C.levels[0]["b", "c"] + ...]
+>>> midf.loc[:, C.levels[0]["b", "c"] | ...]
 one  b        c        a      
 two  x  y  z  x  y  z  x  y  z
 0    3  4  5  6  7  8  0  1  2
->>>  midf.loc[:, (C.levels[0]["b", "c"] + ...) & C.levels[1]["z"]]
+>>>  midf.loc[:, (C.levels[0]["b", "c"] | ...) & C.levels[1]["z"]]
 one  b  c  a
 two  z  z  z
 0    5  8  2
