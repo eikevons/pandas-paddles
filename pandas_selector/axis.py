@@ -12,30 +12,48 @@ Indices = List[int]
 
 class Selection:
     """Container for selection along a data frame axis with combination logic."""
-    def __init__(self, indices:Optional[Indices]=None, mask:Optional[Sequence[int]]=None):
+    def __init__(self, included:Optional[Indices]=None, excluded:Optional[Indices]=None, *,  mask:Optional[Sequence[int]]=None):
         if mask is not None:
-            if indices is not None:
-                raise ValueError("indices and mask cannot be passed together")
-            indices = np.nonzero(mask)[0].tolist()
+            if included is not None:
+                raise ValueError("included indices and mask cannot be passed together")
+            if excluded is not None:
+                raise ValueError("excluded indices and mask cannot be passed together")
+            included = np.nonzero(mask)[0].tolist()
 
-        self.indices: Indices = indices
+        self.included: Optional[Indices] = included
+        self.excluded: Optional[Indices] = excluded
+
+    def apply(self, df):
+        included = self.included
+        if included is None:
+            included = range(len(df.columns))
+
+        if self.excluded is not None:
+            excluded = set(self.excluded)
+        else:
+            excluded = set()
+
+        return df.columns[[i for i in included if not i in excluded]]
 
     def __and__(self, other: "Selection") -> "Selection":
-        def and_indices(a, b):
-            r = []
-            for i in b:
-                if i in a:
-                    r.append(i)
-            return r
-        indices = _combine_nones(self.indices, other.indices, and_indices)
-        return Selection(indices)
+        included=_combine_nones(self.included, other.included, intersect_indices)
+        excluded=_combine_nones(self.excluded, other.excluded, union_indices)
+        if included is not None and excluded is not None:
+            included = [i for i in included if i not in excluded]
+
+        return Selection(included, excluded)
 
     def __or__(self, other: "Selection") -> "Selection":
-        def or_indices(a, b):
-            return a + [i for i in b if i not in a]
+        included = _combine_nones(self.included, other.included, union_indices)
+        excluded = _combine_nones(self.excluded, other.excluded, intersect_indices)
+        if included is not None and excluded is not None:
+            excluded = [i for i in excluded if i not in included]
 
-        indices = _combine_nones(self.indices, other.indices, or_indices)
-        return Selection(indices)
+        return Selection(included, excluded)
+
+    def __invert__(self) -> "Selection":
+        return Selection(self.excluded, self.included)
+
 
 # Utilities to collect and combine column selections
 def _combine_nones(a: Optional[Indices], b: Optional[Indices], fn_both:Callable[[Indices, Indices], Indices]):
@@ -46,6 +64,17 @@ def _combine_nones(a: Optional[Indices], b: Optional[Indices], fn_both:Callable[
     if a is None and b is not None:
         return b
     return fn_both(a, b)
+
+
+def intersect_indices(left: Indices, right: Indices) -> Indices:
+    r = []
+    for i in right:
+        if i in left:
+            r.append(i)
+    return r
+
+def union_indices(left: Indices, right: Indices) -> Indices:
+    return left + [i for i in right if i not in left]
 
 # Column selection operator closures
 class BaseOp:
@@ -114,7 +143,23 @@ class BinaryOp(BaseOp):
     def __call__(self, df: pd.DataFrame) -> Selection:
         sel_left = self.left(df)
         sel_right = self.right(df)
+
         return self.op(sel_left, sel_right)
+
+
+class UnaryOp(BaseOp):
+    def __init__(self, wrapped: BaseOp, op: Callable[[Any], Any]):
+        self.wrapped = wrapped
+        self.op = op
+
+    def __call__(self, df: pd.DataFrame) -> Selection:
+        sel = self.wrapped(df)
+
+        print("XXX")
+        print(sel.included)
+        print(sel.excluded)
+
+        return self.op(sel)
 
 
 class DtypesOp:
@@ -196,7 +241,7 @@ class OpComposerBase:
             self.get_other_op(other),
             self.op,
             op=operator.or_,
-            ))
+        ))
 
     def __add__(self, other):
         return self | other
@@ -204,10 +249,16 @@ class OpComposerBase:
     def __radd__(self, other):
         return other | self
 
-    def __call__(self, df):
+    def __invert__(self):
+        return OpComposerBase(UnaryOp(
+            self.op,
+            op=operator.invert,
+        ))
+
+    def __call__(self, df:pd.DataFrame) -> pd.Index:
         """Evaluate the wrapped operations."""
         selection = self.op(df)
-        return df.columns[selection.indices]
+        return selection.apply(df)
 
 
 class LabelComposer(OpComposerBase):
@@ -298,6 +349,10 @@ class SelectionComposer(LabelComposer):
     labels with first-level "b"::
 
         C.levels[0]["b"] & (C.levels[1]["Y"] | ...)
+
+    Inversion (negation) of selections is possible with ``~``, e.g. to select all but first-level label "b"::
+
+        ~C.levels[0]["b"]
     """
     def __init__(self, op=None, sample_size=None):
         super().__init__(op=op)
@@ -319,8 +374,6 @@ class SelectionComposer(LabelComposer):
     # TODO: Remove once API is stable
     def __getattribute__(self, name):
         attr = super().__getattribute__(name)
-        if name != "__init__":
-            warn("Column selection is an experimental feature! The API might change in minor version update.", stacklevel=2)
+        # if name != "__init__":
+        #     warn("Column selection is an experimental feature! The API might change in minor version update.", stacklevel=2)
         return attr
-
-C = SelectionComposer()
