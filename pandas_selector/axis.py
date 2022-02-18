@@ -56,7 +56,7 @@ class Selection:
 
 
 # Utilities to collect and combine column selections
-def _combine_nones(a: Optional[Indices], b: Optional[Indices], fn_both:Callable[[Indices, Indices], Indices]):
+def _combine_nones(a: Optional[Indices], b: Optional[Indices], fn_both:Callable[[Indices, Indices], Indices]) -> Optional[Indices]:
     if a is None and b is None:
         return None
     if a is not None and b is None:
@@ -73,8 +73,10 @@ def intersect_indices(left: Indices, right: Indices) -> Indices:
             r.append(i)
     return r
 
+
 def union_indices(left: Indices, right: Indices) -> Indices:
     return left + [i for i in right if i not in left]
+
 
 # Column selection operator closures
 class BaseOp:
