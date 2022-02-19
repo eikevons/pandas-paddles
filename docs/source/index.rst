@@ -9,6 +9,9 @@ Welcome to Pandas Selector's documentation!
 {{project}} documentation for version ``{{version}}``.
 {% endif %}
 
+Install with ``pip install pandas-selector``. Source code available at
+`GitHub <https://github.com/eikevons/pandas-selector>`_.
+
 .. automodule:: pandas_selector
 
 .. 
