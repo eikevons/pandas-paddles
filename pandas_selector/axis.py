@@ -380,6 +380,6 @@ class SelectionComposer(LabelComposer):
     # TODO: Remove once API is stable
     def __getattribute__(self, name):
         attr = super().__getattribute__(name)
-        # if name != "__init__":
-        #     warn("Column selection is an experimental feature! The API might change in minor version update.", stacklevel=2)
+        if name != "__init__":
+            warn("Column selection is an experimental feature! The API might change in minor version updates.", stacklevel=2)
         return attr

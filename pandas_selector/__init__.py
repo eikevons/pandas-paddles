@@ -113,6 +113,9 @@ dtype: int64
 Column selection
 ~~~~~~~~~~~~~~~~
 
+.. note::
+    This feature is experimental! The API might change in minor version updates.
+
 See :class:`~pandas_selector.axis.SelectionComposer` for complete API documentation.
 
 Move some columns to the left of the data frame. ``...`` is used to include all other columns at the end and the typical logical operators ``&``, ``|`` (or ``+``), and ``~`` to compose selections
