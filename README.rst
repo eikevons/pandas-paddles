@@ -51,6 +51,7 @@ Overview
 - **Documentation** can be found at `readthedocs
   <https://pandas-selector.readthedocs.io/en/latest/>`_.
 - **Source code** can be obtained from `GitHub <https://github.com/eikevons/pandas-selector>`_.
+- `Changelog <Changelog.md>`_
 
 Example: Create new column and filter
 -------------------------------------
