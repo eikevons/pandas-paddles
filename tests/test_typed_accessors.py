@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from pandas_selector import DF
+from pandas_paddles import DF
 
 
 @pytest.fixture

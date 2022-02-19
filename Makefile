@@ -1,4 +1,4 @@
-PACKAGE_NAME :=  pandas_selector
+PACKAGE_NAME :=  pandas_paddles
 IMAGE_NAME := $(PACKAGE_NAME)
 DEV_IMAGE_NAME := $(IMAGE_NAME)-dev
 
@@ -80,7 +80,7 @@ mypy: devimage
 	    --env "HOME=/tmp/home" \
 	    -w /tmp/home \
 	    $(DEV_IMAGE_NAME) \
-	    mypy /app/pandas_selector/
+	    mypy /app/pandas_paddles/
 
 
 docs: devimage

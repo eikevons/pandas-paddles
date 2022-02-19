@@ -1,5 +1,5 @@
-Welcome to Pandas Selector's documentation!
-===========================================
+Welcome to Pandas Paddles's documentation!
+==========================================
 
 .. toctree::
 
@@ -9,14 +9,14 @@ Welcome to Pandas Selector's documentation!
 {{project}} documentation for version ``{{version}}``.
 {% endif %}
 
-Install with ``pip install pandas-selector``. Source code available at
+Install with ``pip install pandas-paddles``. Source code available at
 `GitHub <https://github.com/eikevons/pandas-selector>`_.
 
-.. automodule:: pandas_selector
+.. automodule:: pandas_paddles
 
 .. 
    NOTE: List all sub-packages as
-   `pandas_selector.SUBPACKAGE` in the autosummary block
+   `pandas_paddles.SUBPACKAGE` in the autosummary block
    below.
 
 API
@@ -27,8 +27,8 @@ API
    :recursive:
    :template: custom-module-template.rst
 
-   pandas_selector.df_accessor
-   pandas_selector.axis
+   pandas_paddles.df_accessor
+   pandas_paddles.axis
 
 
 Indices and tables

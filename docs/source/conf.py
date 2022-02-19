@@ -20,14 +20,14 @@ sys.path.insert(0, os.path.abspath("../.."))
 
 # -- Project information -----------------------------------------------------
 
-project = "Pandas Selector"
+project = "Pandas Paddles"
 author = "Eike von Seggern"
 copyright = f"2021, {author}"
 
 # The short X.Y version
-import pandas_selector
+import pandas_paddles
 
-version = pandas_selector.__version__
+version = pandas_paddles.__version__
 
 # The full version, including alpha/beta/rc tags
 release = version

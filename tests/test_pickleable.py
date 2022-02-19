@@ -1,7 +1,7 @@
 from pickle import dumps, loads
 import pandas as pd
 
-from pandas_selector import DF, S
+from pandas_paddles import DF, S
 
 
 def test_can_be_pickled():

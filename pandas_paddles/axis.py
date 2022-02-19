@@ -320,7 +320,7 @@ class SelectionComposer(LabelComposer):
     Use the global instance like::
 
         # Move columns x, z to left
-        from pandas_selector import C
+        from pandas_paddles import C
         df.loc[:, C["x", "z"] | ...]
 
     Other use-cases:
