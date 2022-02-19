@@ -1,8 +1,9 @@
 """\
-Pandas Selector
----------------
+Pandas Paddles
+--------------
 
-*Write concise chained data-frame operations.*
+*Help* ``pandas`` *navigate its fluent API with paddles: Write concise
+chained data-frame operations.*
 
 Just use ``DF`` in arguments to :attr:`~pandas.DataFrame.loc`,
 :attr:`~pandas.DataFrame.iloc`, :meth:`~pandas.DataFrame.assign()` and other
@@ -21,7 +22,7 @@ DataFrame examples
 
 Filter rows with :attr:`~pandas.DataFrame.loc`:
 
->>> from pandas_selector import DF
+>>> from pandas_paddles import DF
 >>> df = pd.DataFrame({"x": range(9), "y": 3 * ["a", "B", "c"]})
 >>> df.loc[DF["x"] < 3]
    x  y
@@ -97,7 +98,7 @@ Series examples
 
 Select subset of series matching predicate:
 
->>> from pandas_selector import S
+>>> from pandas_paddles import S
 >>> s = pd.Series(range(10))
 >>> s[S < 3]
 0    0
@@ -116,11 +117,11 @@ Column selection
 .. note::
     This feature is experimental! The API might change in minor version updates.
 
-See :class:`~pandas_selector.axis.SelectionComposer` for complete API documentation.
+See :class:`~pandas_paddles.axis.SelectionComposer` for complete API documentation.
 
 Move some columns to the left of the data frame. ``...`` is used to include all other columns at the end and the typical logical operators ``&``, ``|`` (or ``+``), and ``~`` to compose selections
 
->>> from pandas_selector import C
+>>> from pandas_paddles import C
 >>> df = pd.DataFrame({"x": 1, "y": 3.14, "z": "abc", "u": 42}, index=[0])
 >>> df.loc[:, C["y", "u"] | ...]
       y   u  x    z
@@ -166,10 +167,10 @@ two  z  z  z
 Comparison
 ~~~~~~~~~~
 
-With ``pandas_selector.DF`` data frame operations can be easily composed in
+With ``pandas_paddles.DF`` data frame operations can be easily composed in
 a way that does not need to reference the initial dataframes::
 
-    from pandas_selector import DF
+    from pandas_paddles import DF
     df_out = (df_in
               .loc[DF["x"] == 3]
               .assign(x_is_even = (DF["x"] % 2) == 0)

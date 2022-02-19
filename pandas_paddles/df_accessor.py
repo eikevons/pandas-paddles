@@ -343,7 +343,7 @@ class DataframeAccessor(AccessorBase):
 
     Use the global instance like::
 
-        from pandas_selector import DF
+        from pandas_paddles import DF
         df.loc[DF["x"] < 3]
 
     All operations (item/attribute access, method calls) are passed to the
@@ -397,7 +397,7 @@ class SeriesAccessor(AccessorBase):
 
     Use the global instance like::
 
-        from pandas_selector import S
+        from pandas_paddles import S
         s[S < 0]
 
     All operations (item/attribute access, method calls) are passed to the

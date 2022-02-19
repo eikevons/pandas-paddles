@@ -1,5 +1,5 @@
-from pandas_selector.df_accessor import AccessorBase
-from pandas_selector import DF, S
+from pandas_paddles.df_accessor import AccessorBase
+from pandas_paddles import DF, S
 
 
 def test_DF_repr():

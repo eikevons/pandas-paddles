@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from pandas_selector import DF, S
+from pandas_paddles import DF, S
 
 @pytest.mark.parametrize(
     "df_sel,exp_doc",

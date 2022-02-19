@@ -1,4 +1,4 @@
-from pandas_selector import DF, S
+from pandas_paddles import DF, S
 
 import pandas as pd
 import pytest

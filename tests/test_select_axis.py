@@ -1,8 +1,8 @@
 import pandas as pd
 import pytest
 
-from pandas_selector import C
-from pandas_selector.axis import OpComposerBase
+from pandas_paddles import C
+from pandas_paddles.axis import OpComposerBase
 
 
 def cols(df: pd.DataFrame, col_sel: OpComposerBase) -> list:

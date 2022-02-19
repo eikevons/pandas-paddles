@@ -1,6 +1,8 @@
 # Unrelease (YYYY-MM-DD)
 
+- Rename package to `pandas_paddles`.
 - Drop Python 3.6 from actively supported releases.
+- Add Python 3.10 to test matrix.
 
 # 1.2.2 (2022-02-19)
 

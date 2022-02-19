@@ -12,7 +12,7 @@ WORKDIR /app
 # Copy project and dependencies.
 COPY pyproject.toml poetry.lock* /app/
 # Use poetry.lock* to cope with missing lock-file
-COPY pandas_selector/ /app/
+COPY pandas_paddles/ /app/
 
 # Prevent poetry from creating virtual envs
 ENV POETRY_VIRTUALENVS_CREATE=false

@@ -1,5 +1,5 @@
-Pandas Selector
-===============
+Pandas Paddles
+==============
 
 Access the calling ``pandas`` data frame in ``loc[]``, ``iloc[]``,
 ``assign()`` and other methods with ``DF`` to write better chains of
@@ -22,20 +22,20 @@ data frame operations, e.g.:
           )
          )
 
-.. image:: https://readthedocs.org/projects/pandas-selector/badge/?version=latest
-  :target: https://pandas-selector.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/pandas-paddles/badge/?version=latest
+  :target: https://pandas-paddles.readthedocs.io/en/latest/?badge=latest
   :alt: Documentation Status
 .. image:: https://github.com/eikevons/pandas-selector/actions/workflows/check.yml/badge.svg
   :target: https://github.com/eikevons/pandas-selector/actions/workflows/check.yml
   :alt: Test Status
-.. image:: https://img.shields.io/pypi/v/pandas-selector
-   :target: https://pypi.org/project/pandas-selector/
+.. image:: https://img.shields.io/pypi/v/pandas-paddles
+   :target: https://pypi.org/project/pandas-paddles/
    :alt: Latest version
-.. image:: https://img.shields.io/pypi/pyversions/pandas-selector
-   :target: https://pypi.org/project/pandas-selector/
+.. image:: https://img.shields.io/pypi/pyversions/pandas-paddles
+   :target: https://pypi.org/project/pandas-paddles/
    :alt: Supported Python versions
-.. image:: https://img.shields.io/pypi/dm/pandas-selector
-   :target: https://pypi.org/project/pandas-selector/
+.. image:: https://img.shields.io/pypi/dm/pandas-paddles
+   :target: https://pypi.org/project/pandas-paddles/
    :alt: PyPI downloads
 
 Overview
@@ -47,7 +47,7 @@ Overview
   function or referencing columns in R's `dplyr
   <https://dplyr.tidyverse.org/articles/dplyr.html>`_.
 - **Install** from PyPI with ``pip install
-  pandas-selector``. Pandas versions 1.0+ (``^1.0``) are supported.
+  pandas-paddles``. Pandas versions 1.0+ (``^1.0``) are supported.
 - **Documentation** can be found at `readthedocs
   <https://pandas-selector.readthedocs.io/en/latest/>`_.
 - **Source code** can be obtained from `GitHub <https://github.com/eikevons/pandas-selector>`_.
@@ -74,7 +74,7 @@ One can write:
 
 .. code-block:: python
 
-    from pandas_selector import DF
+    from pandas_paddles import DF
     df = (df_in
           .assign(y = DF["x"] // 2)
           .loc[DF["y"] <= 1]
