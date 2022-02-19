@@ -1,6 +1,6 @@
 # Unrelease (YYYY-MM-DD)
 
-- ...
+- Drop Python 3.6 from actively supported releases.
 
 # 1.2.2 (2022-02-19)
 
