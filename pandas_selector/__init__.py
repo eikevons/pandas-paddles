@@ -192,8 +192,8 @@ code::
 
 Author: Eike von Seggern <eike@vonseggern.space>
 """
-__version__ = "1.2.1"
-__all__ = ["DF", "S"]
+__version__ = "1.2.2"
+__all__ = ["C", "DF", "S"]
 
 from .df_accessor import DataframeAccessor, SeriesAccessor
 from .axis import SelectionComposer
