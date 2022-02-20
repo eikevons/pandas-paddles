@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "pandas_selector"
+version = "$VERSION"
+description = "Stub package to install the matching pandas_paddles"
+authors = ["Eike von Seggern <eikevons@mailbox.org>"]
+repository = "https://github.com/eikevons/pandas-selector.git/pandas_selector"
+license = "MIT"
+classifiers = [
+  "Development Status :: 7 - Inactive"
+]
+
+[tool.poetry.dependencies]
+python = "^3.7.0"
+pandas_paddles = "$VERSION"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
