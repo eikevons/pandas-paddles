@@ -3,7 +3,7 @@ name = "pandas_selector"
 version = "$VERSION"
 description = "Stub package to install the matching pandas_paddles"
 authors = ["Eike von Seggern <eikevons@mailbox.org>"]
-repository = "https://github.com/eikevons/pandas-selector.git/pandas_selector"
+repository = "https://github.com/eikevons/pandas-paddles.git"
 license = "MIT"
 classifiers = [
   "Development Status :: 7 - Inactive"

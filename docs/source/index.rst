@@ -4,13 +4,13 @@ Welcome to Pandas Paddles's documentation!
 .. toctree::
 
 {% if githash is defined %}
-{{project}} documentation for version ``{{version}}`` (`{{githash}} <https://github.com/eikevons/pandas-selector/commit/{{githash}}>`_).
+{{project}} documentation for version ``{{version}}`` (`{{githash}} <https://github.com/eikevons/pandas-paddles/commit/{{githash}}>`_).
 {% else %}
 {{project}} documentation for version ``{{version}}``.
 {% endif %}
 
 Install with ``pip install pandas-paddles``. Source code available at
-`GitHub <https://github.com/eikevons/pandas-selector>`_.
+`GitHub <https://github.com/eikevons/pandas-paddles>`_.
 
 .. automodule:: pandas_paddles
 
