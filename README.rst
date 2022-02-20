@@ -25,8 +25,8 @@ data frame operations, e.g.:
 .. image:: https://readthedocs.org/projects/pandas-paddles/badge/?version=latest
   :target: https://pandas-paddles.readthedocs.io/en/latest/?badge=latest
   :alt: Documentation Status
-.. image:: https://github.com/eikevons/pandas-selector/actions/workflows/check.yml/badge.svg
-  :target: https://github.com/eikevons/pandas-selector/actions/workflows/check.yml
+.. image:: https://github.com/eikevons/pandas-paddles/actions/workflows/check.yml/badge.svg
+  :target: https://github.com/eikevons/pandas-paddles/actions/workflows/check.yml
   :alt: Test Status
 .. image:: https://img.shields.io/pypi/v/pandas-paddles
    :target: https://pypi.org/project/pandas-paddles/
@@ -49,8 +49,8 @@ Overview
 - **Install** from PyPI with ``pip install
   pandas-paddles``. Pandas versions 1.0+ (``^1.0``) are supported.
 - **Documentation** can be found at `readthedocs
-  <https://pandas-selector.readthedocs.io/en/latest/>`_.
-- **Source code** can be obtained from `GitHub <https://github.com/eikevons/pandas-selector>`_.
+  <https://pandas-paddles.readthedocs.io/en/latest/>`_.
+- **Source code** can be obtained from `GitHub <https://github.com/eikevons/pandas-paddles>`_.
 - `Changelog <Changelog.md>`_
 
 Example: Create new column and filter
