@@ -1,4 +1,12 @@
-# Unrelease (YYYY-MM-DD)
+# Unreleased (YYYY-MM-DD)
+
+- ...
+
+# 1.3.1 (2022-02-21)
+
+- Fix build of stub package (`pandas_selector`).
+
+# 1.3.0 (2022-02-21)
 
 - Rename package to `pandas_paddles`.
 - Drop Python 3.6 from actively supported releases.
