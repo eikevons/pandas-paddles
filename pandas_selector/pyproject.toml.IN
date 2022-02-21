@@ -8,6 +8,8 @@ license = "MIT"
 classifiers = [
   "Development Status :: 7 - Inactive"
 ]
+include ["pandas_selector/__init__.py"]
+exclude ["pandas_selector/__init__.py.IN"]
 
 [tool.poetry.dependencies]
 python = "^3.7.0"
