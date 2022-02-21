@@ -10,10 +10,15 @@ The package pandas_selector is deprecated in favor of pandas_paddles. Please rep
 with
     from pandas_paddles import ...
 """,
-     FutureWarning
+     FutureWarning,
+     stacklevel=2,
 )
 
 from pandas_paddles import DF, S, C, __version__ as pp_version
 
 if __version__ != pp_version:
-    warn(f"Version mismatch between pandas_selector ({__version__}) and pandas_paddles ({pp_version}): The versions should be the same!")
+    warn(
+        f"Version mismatch between pandas_selector ({__version__}) and"
+        f" pandas_paddles ({pp_version}): The versions should be the same!",
+        stacklevel=2,
+    )
