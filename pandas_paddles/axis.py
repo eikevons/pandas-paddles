@@ -1,6 +1,6 @@
 """Select axis labels (columns or index) of a data frame."""
 import operator
-from typing import Any, Callable, List, Optional, Sequence
+from typing import Any, Callable, List, Literal, Optional, Sequence
 from warnings import warn
 
 import numpy as np
@@ -23,17 +23,21 @@ class Selection:
         self.included: Optional[Indices] = included
         self.excluded: Optional[Indices] = excluded
 
-    def apply(self, df):
+    def apply(self, axis:Literal["columns", "index"], df: pd.DataFrame):
+        labels = getattr(df, axis)
         included = self.included
         if included is None:
-            included = range(len(df.columns))
+            included = range(len(labels))
 
         if self.excluded is not None:
             excluded = set(self.excluded)
         else:
             excluded = set()
 
-        return df.columns[[i for i in included if not i in excluded]]
+        print('XXX')
+        print(labels)
+
+        return labels[[i for i in included if not i in excluded]]
 
     def __and__(self, other: "Selection") -> "Selection":
         included=_combine_nones(self.included, other.included, intersect_indices)
@@ -81,7 +85,7 @@ def union_indices(left: Indices, right: Indices) -> Indices:
 # Column selection operator closures
 class BaseOp:
     """API definition of the closure object."""
-    def __call__(self, df: pd.DataFrame) -> Selection:
+    def __call__(self, axis: Literal["columns", "index"], df: pd.DataFrame) -> Selection:
         """Evaluate operator on data frame from context."""
         raise NotImplementedError("Must be implemented in sub-class.")
 
@@ -96,12 +100,13 @@ class LabelSelectionOp(BaseOp):
         self.labels = labels
         self.level=level
 
-    def __call__(self, df):
-        idx = np.arange(len(df.columns))
+    def __call__(self, axis, df):
+        labels = getattr(df, axis)
+        idx = np.arange(len(labels))
         if self.level is None:
-            cands = df.columns
+            cands = labels
         else:
-            cands = df.columns.get_level_values(self.level)
+            cands = labels.get_level_values(self.level)
 
         indices = []
         for lbl in self.labels:
@@ -118,11 +123,12 @@ class LabelPredicateOp(BaseOp):
         self.kwargs = kwargs
         self.level = level
 
-    def __call__(self, df: pd.DataFrame) -> Selection:
+    def __call__(self, axis, df: pd.DataFrame) -> Selection:
+        labels = getattr(df, axis)
         if self.level is None:
-            str_accessor = df.columns.str
+            str_accessor = labels.str
         else:
-            str_accessor = df.columns.get_level_values(self.level).str
+            str_accessor = labels.get_level_values(self.level).str
 
         meth = getattr(str_accessor, self.meth)
         mask = meth(*self.args, **self.kwargs)
@@ -131,8 +137,9 @@ class LabelPredicateOp(BaseOp):
 
 class EllipsisOp(BaseOp):
     """Select all columns."""
-    def __call__(self, df: pd.DataFrame) -> Selection:
-        return Selection(mask=np.ones(len(df.columns), dtype=bool))
+    def __call__(self, axis, df: pd.DataFrame) -> Selection:
+        labels = getattr(df, axis)
+        return Selection(mask=np.ones(len(labels), dtype=bool))
 
 
 class BinaryOp(BaseOp):
@@ -142,9 +149,9 @@ class BinaryOp(BaseOp):
         self.right = right
         self.op = op
 
-    def __call__(self, df: pd.DataFrame) -> Selection:
-        sel_left = self.left(df)
-        sel_right = self.right(df)
+    def __call__(self, axis, df: pd.DataFrame) -> Selection:
+        sel_left = self.left(axis, df)
+        sel_right = self.right(axis, df)
 
         return self.op(sel_left, sel_right)
 
@@ -154,8 +161,8 @@ class UnaryOp(BaseOp):
         self.wrapped = wrapped
         self.op = op
 
-    def __call__(self, df: pd.DataFrame) -> Selection:
-        sel = self.wrapped(df)
+    def __call__(self, axis, df: pd.DataFrame) -> Selection:
+        sel = self.wrapped(axis, df)
 
         print("XXX")
         print(sel.included)
@@ -170,8 +177,11 @@ class DtypesOp:
         self.dtypes = dtypes
         self.sample_size = sample_size
 
-    def __call__(self, df):
-        mask = np.zeros(len(df.columns), dtype=bool)
+    def __call__(self, axis, df):
+        if axis != "columns":
+            raise ValueError("Selection by dtype is only supported for column selection.")
+        labels = getattr(df, axis)
+        mask = np.zeros(len(labels), dtype=bool)
         for dtype in self.dtypes:
             for typ in (str, bytes):
                 if dtype in (typ, typ.__name__):
@@ -195,7 +205,8 @@ class OpComposerBase:
     operators (``+``, ``&``, and ``|``) and defers the evaluation of the
     operators until called (by the context data-frame in ``.loc[]``).
     """
-    def __init__(self, op=None):
+    def __init__(self, axis:Literal["columns", "index"], op):
+        self.axis = axis
         self.op = op or Selection()
 
     def get_other_op(self, other):
@@ -218,28 +229,28 @@ class OpComposerBase:
         raise ValueError(f"Cannot convert argument of type {type(other)!r} to selection operator")
 
     def __and__(self, other):
-        return OpComposerBase(BinaryOp(
+        return OpComposerBase(self.axis, BinaryOp(
             self.op,
             self.get_other_op(other),
             op=operator.and_,
             ))
 
     def __rand__(self, other):
-        return OpComposerBase(BinaryOp(
+        return OpComposerBase(self.axis, BinaryOp(
             self.get_other_op(other),
             self.op,
             op=operator.and_,
             ))
 
     def __or__(self, other):
-        return OpComposerBase(BinaryOp(
+        return OpComposerBase(self.axis, BinaryOp(
             self.op,
             self.get_other_op(other),
             op=operator.or_,
             ))
 
     def __ror__(self, other):
-        return OpComposerBase(BinaryOp(
+        return OpComposerBase(self.axis, BinaryOp(
             self.get_other_op(other),
             self.op,
             op=operator.or_,
@@ -252,15 +263,15 @@ class OpComposerBase:
         return other | self
 
     def __invert__(self):
-        return OpComposerBase(UnaryOp(
+        return OpComposerBase(self.axis, UnaryOp(
             self.op,
             op=operator.invert,
         ))
 
     def __call__(self, df:pd.DataFrame) -> pd.Index:
         """Evaluate the wrapped operations."""
-        selection = self.op(df)
-        return selection.apply(df)
+        selection = self.op(self.axis, df)
+        return selection.apply(self.axis, df)
 
 
 class LabelComposer(OpComposerBase):
@@ -274,45 +285,51 @@ class LabelComposer(OpComposerBase):
     which are passed through to ``pd.Series.str``.
     """
     # TODO: Implement ``C.lower()...``
-    def __init__(self, op=None, level=None):
-        super().__init__(op)
+    def __init__(self, axis, op=None, level=None):
+        super().__init__(axis, op)
         self.level = level
 
+    def _get_op_composer(self, op):
+        return OpComposerBase(self.axis, op)
+
     def __getitem__(self, labels):
-        return OpComposerBase(LabelSelectionOp(labels, self.level))
+        return self._get_op_composer(LabelSelectionOp(labels, self.level))
 
     def startswith(self, *args, **kwargs):
-        return OpComposerBase(LabelPredicateOp("startswith", args, kwargs, self.level))
+        return self._get_op_composer(LabelPredicateOp("startswith", args, kwargs, self.level))
 
     def endswith(self, *args, **kwargs):
-        return OpComposerBase(LabelPredicateOp("endswith", args, kwargs, self.level))
+        return self._get_op_composer(LabelPredicateOp("endswith", args, kwargs, self.level))
 
     def contains(self, *args, **kwargs):
-        return OpComposerBase(LabelPredicateOp("contains", args, kwargs, self.level))
+        return self._get_op_composer(LabelPredicateOp("contains", args, kwargs, self.level))
 
     def match(self, *args, **kwargs):
-        return OpComposerBase(LabelPredicateOp("match", args, kwargs, self.level))
-
+        return self._get_op_composer(LabelPredicateOp("match", args, kwargs, self.level))
 
 class LeveledComposer:
     """Compose callable to access multi-level index labels."""
+    def __init__(self, axis):
+        self.axis = axis
+
     def __getitem__(self, level):
-        return LabelComposer(level=level)
+        return LabelComposer(self.axis, level=level)
 
 
 class DtypeComposer:
     """Compose callable to select columns by dtype."""
-    def __init__(self, sample_size=10):
+    def __init__(self, axis, sample_size=10):
+        self.axis = axis
         self.sample_size = sample_size
 
     def __eq__(self, dtype):
-        return OpComposerBase(DtypesOp((dtype,), self.sample_size))
+        return OpComposerBase(self.axis, DtypesOp((dtype,), self.sample_size))
 
     def isin(self, dtypes):
-        return OpComposerBase(DtypesOp(dtypes, self.sample_size))
+        return OpComposerBase(self.axis, DtypesOp(dtypes, self.sample_size))
 
 
-class SelectionComposer(LabelComposer):
+class SelectionComposerBase(LabelComposer):
     """Compose callable to select or sort columns.
 
     This acts as global entrypoint.
@@ -360,10 +377,23 @@ class SelectionComposer(LabelComposer):
 
         ~(C.levels[0]["b"] | C.levels[1]["X", "Y"])
     """
-    def __init__(self, op=None, sample_size=None):
-        super().__init__(op=op)
-        self.dtype = DtypeComposer()
-        self.levels = LeveledComposer()
+    def __init__(self, axis, op=None):
+        super().__init__(axis, op=op)
+        self.levels = LeveledComposer(self.axis)
+
+    # Warn about experimental status of this feature.
+    # TODO: Remove once API is stable
+    def __getattribute__(self, name):
+        attr = super().__getattribute__(name)
+        if name != "__init__":
+            warn("Column/index selection is an experimental feature! The API might change in minor version updates.", stacklevel=2)
+        return attr
+
+
+class ColumnSelectionComposer(SelectionComposerBase):
+    def __init__(self, axis, op=None, sample_size=None):
+        super().__init__(axis, op=op)
+        self.dtype = DtypeComposer(self.axis)
         if sample_size is not None:
             self.sample_size = sample_size
 
@@ -375,11 +405,3 @@ class SelectionComposer(LabelComposer):
     @sample_size.setter
     def sample_size(self, val):
         self.dtype.sample_size = val
-
-    # Warn about experimental status of this feature.
-    # TODO: Remove once API is stable
-    def __getattribute__(self, name):
-        attr = super().__getattribute__(name)
-        if name != "__init__":
-            warn("Column selection is an experimental feature! The API might change in minor version updates.", stacklevel=2)
-        return attr

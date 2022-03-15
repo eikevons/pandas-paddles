@@ -197,8 +197,9 @@ __version__ = "1.4.0-dev"
 __all__ = ["C", "DF", "S"]
 
 from .df_accessor import DataframeAccessor, SeriesAccessor
-from .axis import SelectionComposer
+from .axis import ColumnSelectionComposer, SelectionComposerBase
 
 DF = DataframeAccessor()
 S = SeriesAccessor()
-C = SelectionComposer()
+C = ColumnSelectionComposer("columns")
+I = SelectionComposerBase("index")
