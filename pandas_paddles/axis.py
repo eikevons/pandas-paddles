@@ -1,6 +1,10 @@
 """Select axis labels (columns or index) of a data frame."""
 import operator
-from typing import Any, Callable, List, Literal, Optional, Sequence
+from typing import Any, Callable, List, Optional, Sequence
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
 from warnings import warn
 
 import numpy as np
