@@ -38,9 +38,6 @@ class Selection:
         else:
             excluded = set()
 
-        print('XXX')
-        print(labels)
-
         return labels[[i for i in included if not i in excluded]]
 
     def __and__(self, other: "Selection") -> "Selection":
@@ -167,10 +164,6 @@ class UnaryOp(BaseOp):
 
     def __call__(self, axis, df: pd.DataFrame) -> Selection:
         sel = self.wrapped(axis, df)
-
-        print("XXX")
-        print(sel.included)
-        print(sel.excluded)
 
         return self.op(sel)
 
