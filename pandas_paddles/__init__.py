@@ -209,12 +209,12 @@ code::
 Author: Eike von Seggern <eike@vonseggern.space>
 """
 __version__ = "1.4.0-dev"
-__all__ = ["C", "DF", "S"]
+__all__ = ["C", "DF", "I", "S"]
 
 from .df_accessor import DataframeAccessor, SeriesAccessor
 from .axis import ColumnSelectionComposer, SelectionComposerBase
 
-DF = DataframeAccessor()
-S = SeriesAccessor()
 C = ColumnSelectionComposer("columns")
+DF = DataframeAccessor()
 I = SelectionComposerBase("index")
+S = SeriesAccessor()
