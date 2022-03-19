@@ -1,6 +1,6 @@
 # Unreleased (YYYY-MM-DD)
 
-- ...
+- Add `I` for label-selection for index similar as `C` for columns.
 
 # 1.3.1 (2022-02-21)
 
