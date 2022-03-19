@@ -13,9 +13,14 @@ methods to access columns, methods, and attributes of the calling data frame
 operations much more concisely. See `Comparison`_ below.
 
 * ``DF`` and ``S`` give you access to all data frame/series attributes where
-  Pandas allows to pass a callback to handle the contextual object. (See `DataFrame examples`_ and `Series examples`_)
+  Pandas allows to pass a callback to handle the contextual object. (See
+  `DataFrame examples`_ and `Series examples`_)
 * ``C`` can be used to simplify column selection in
-  :attr:`~pandas.DataFrame.loc` by column name or data type. (See `Column selection`_)
+  :attr:`~pandas.DataFrame.loc` by column name or data type. (See `Column or
+  index selection`_)
+* ``I`` can be used to simplify row selection in
+  :attr:`~pandas.DataFrame.loc` by row label. (See `Column or index
+  selection`_)
 
 DataFrame examples
 ~~~~~~~~~~~~~~~~~~
@@ -111,15 +116,25 @@ dtype: int64
 8    8
 dtype: int64
 
-Column selection
-~~~~~~~~~~~~~~~~
+Column or index selection
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. warning::
+    This feature is **experimental**! The API might change in minor version updates.
+
+See :class:`~pandas_paddles.axis.ColumnSelectionComposer` for complete API
+documentation. (:class:`~pandas.paddles.axis.SelectionComposerBase` for
+index-wise selection.)
 
 .. note::
-    This feature is experimental! The API might change in minor version updates.
+    Except for `C.dtype`, the examples below work in a similar manner when
+    selecting by index by replacing ``C`` with ``I``, e.g.
 
-See :class:`~pandas_paddles.axis.SelectionComposer` for complete API documentation.
+    >>> df.loc[I["a", "b"] | ...]
 
-Move some columns to the left of the data frame. ``...`` is used to include all other columns at the end and the typical logical operators ``&``, ``|`` (or ``+``), and ``~`` to compose selections
+Move some columns to the left of the data frame. ``...`` is used to include
+all other columns at the end and the typical logical operators ``&``, ``|``
+(or ``+``), and ``~`` to compose selections
 
 >>> from pandas_paddles import C
 >>> df = pd.DataFrame({"x": 1, "y": 3.14, "z": "abc", "u": 42}, index=[0])
