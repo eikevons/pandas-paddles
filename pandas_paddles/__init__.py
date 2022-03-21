@@ -208,7 +208,7 @@ code::
 
 Author: Eike von Seggern <eike@vonseggern.space>
 """
-__version__ = "1.3.2"
+__version__ = "1.4.0-dev"
 __all__ = ["C", "DF", "I", "S"]
 
 from .df_accessor import DataframeAccessor, SeriesAccessor

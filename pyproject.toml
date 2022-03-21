@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pandas_paddles"
-version = "1.3.2"
+version = "1.4.0-dev"
 description = "Simple, composable selectors for loc[], iloc[], assign() and others for fluent-API style Pandas code."
 authors = ["Eike von Seggern <eikevons@mailbox.org>"]
 repository = "https://github.com/eikevons/pandas-paddles.git"
