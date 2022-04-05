@@ -149,6 +149,13 @@ def test_combine_complex(mi_df):
     ]
     assert rows(mi_df, idx_sel) == expected
 
+    # Select (b, Y)
+    idx_sel = I.levels[0]["b"] & I.levels[1]["Y"]
+    expected = [
+        ("b", "Y"),
+    ]
+    assert rows(mi_df, idx_sel) == expected
+
 
 def test_inversion_basic(simple_df):
     idx_sel = ~I["y"]
