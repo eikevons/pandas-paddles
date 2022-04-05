@@ -1,3 +1,4 @@
+import pickle
 import pandas as pd
 import pytest
 
@@ -166,6 +167,7 @@ def test_inversion_complex(mi_df):
     ]
     assert rows(mi_df, idx_sel) == expected
 
+
 def test_inversion_composition(mi_df):
     # Select (*, ~[Y, Z])
     sel_1 = ... & ~I.levels[1]["Y", "Z"]
@@ -199,3 +201,16 @@ def test_inversion_composition(mi_df):
     print(test)
     print(expected_composed)
     assert test == expected_composed
+
+
+@pytest.mark.parametrize(
+    "sel",
+    [
+        I["y", "z", "x"],
+        I.startswith("x"),
+        ... & ~I.levels[1]["Y", "Z"],
+    ],
+)
+def test_serializable(sel):
+    buf = pickle.dumps(sel)
+    pickle.loads(buf)
