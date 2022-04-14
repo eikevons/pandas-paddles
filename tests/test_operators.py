@@ -28,11 +28,6 @@ def s():
         ("DF.x > 2", 2 * [False] + 3 * [True]),
         # Comparison between 2 columns
         ("DF.x > DF.z", 2 * [False] + 3 * [True]),
-        # Boolean combinations of binary comparisons
-        ("(DF.x > 2) & (DF.y == 'd')", 3 * [False] + [True, False]),
-        ("(DF.x > 2) | (DF.y == 'a')", [True, False] + 3 * [True]),
-        ("(DF.x > 2) ^ (DF.y == 'd')", 2 * [False] + [True, False, True]),
-        ("~(DF.x > 2)", 2 * [True] + 3 * [False]),
         # Reverse operators
         ("2 > DF.x", [True] + 4 * [False]),
         ("2 >= DF.x", [True, True] + 3 * [False]),
@@ -60,6 +55,25 @@ def test_df_comparison(df, code, expected):
     ],
 )
 def test_df_arithmetic(df, code, expected):
+    f = eval(code)
+    test = f(df)
+    assert test.to_list() == expected
+
+@pytest.mark.parametrize(
+    "code, expected",
+    [
+        # Boolean combinations of binary comparisons
+        ("(DF.x > 2) & (DF.y == 'd')", 3 * [False] + [True, False]),
+        ("(DF.x > 2) | (DF.y == 'a')", [True, False] + 3 * [True]),
+        ("(DF.x > 2) ^ (DF.y == 'd')", 2 * [False] + [True, False, True]),
+        ("~(DF.x > 2)", 2 * [True] + 3 * [False]),
+        # Boolean logic with parentheses
+        ("((DF.x > 2) & (DF.y == 'd')) | (DF.z == 1)", [True, False] + 3 * [True]),
+        ("(DF.x > 2) & (DF.y == 'd') | (DF.z == 1)", [True, False] + 3 * [True]),
+        ("(DF.x > 2) & ((DF.y == 'd') | (DF.z == 1))", [False, False] + 3 * [True]),
+    ],
+)
+def test_df_boolean_logic(df, code, expected):
     f = eval(code)
     test = f(df)
     assert test.to_list() == expected
