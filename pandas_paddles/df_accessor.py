@@ -1,6 +1,6 @@
 """Access data frame/series from context in ``.loc[]``, ``.iloc[]``, ``.assign()``, and others."""
 
-from typing import Any, Callable, ClassVar, Dict, Iterable, Optional, Union, Tuple, Type
+from typing import Any, Callable, ClassVar, Dict, Iterable, List, Optional, Union, Tuple, Type
 
 import pandas as pd
 
@@ -43,8 +43,10 @@ class WrapperBase:
     def __getstate__(self) -> Dict[str, Any]:
         return self.__dict__.copy()
 
-    def __setstate__(self, state:Dict[str, Any]):
-        self.__dict__.update(state)
+    def pretty_tokens(self, lhs=None) -> List[str]:
+        if not lhs:
+            lhs = ["root"]
+        return lhs + [str(self)]
 
 
 class Attribute(WrapperBase):
@@ -208,6 +210,48 @@ class Method(WrapperBase):
             **{k: self._evaluate_method_arg(arg, root_obj) for k, arg in self.kwargs.items()}
         )
 
+    def pretty_tokens(self, lhs) -> List[str]:
+        if not lhs:
+            lhs = ["root"]
+        def pp_arg(a):
+            if isinstance(a, AccessorBase):
+                return a.pretty_tokens()
+            return repr(a)
+        if self.name.startswith("__") and self.name.endswith("__"):
+            # Unary operator
+            if not self.args and not self.kwargs:
+                return [self.name, lhs]
+            # Binary operator
+            elif len(self.args) == 1:
+                if isinstance(self.args[0], AccessorBase):
+                    return [
+                        lhs,
+                        self.name,
+                        self.args[0].pretty_tokens(),
+                     ]
+                else:
+                    return [
+                        lhs,
+                        self.name,
+                        [pp_arg(self.args[0])],
+                    ]
+
+        # Normal method calls
+        kwarg_tokens = []
+        for k, v in self.kwargs.items():
+            kwarg_tokens.extend([
+                f"{k}=", [pp_arg(v)]
+            ])
+
+        return [
+            *lhs,
+            f".{self.name}(...)",
+            [
+                *[pp_arg(a) for a in self.args],
+                *kwarg_tokens,
+            ],
+        ]
+
 
 def _add_dunder_operators(cls):
     """Dress class with all sensible comparison operations.
@@ -309,7 +353,75 @@ class AccessorBase:
     def __str__(self) -> str:
         return ''.join(str(l) for l in self._levels)
 
+    def _get_ops_tree(self):
+        ops = []
+        for l in self._levels:
+            # Catch wrapped binary-ops
+            if isinstance(l, Method):
+                ops = [(l, ops)]
+            else:
+                ops.append(l)
+        return ops
+
+    def _pprint_OLD(self, indent=0):
+        s_ind = indent * '  '
+        for op in self._get_ops_tree():
+            if isinstance(op, tuple):
+                op, lhs = op
+                print(f"{s_ind}(")
+                for lop in lhs:
+                    if isinstance(lop, tuple):
+                        print(f"{s_ind}  {l}")
+                print(f"{s_ind}{op.name}")
+                if len(op.args) == 1 and isinstance(op.args[0], type(self)):
+                    op.args[0]._pprint(indent=indent+2)
+                elif len(op.args) or len(op.kwargs):
+                        print(f"{s_ind}  (")
+                        for arg in op.args:
+                            print(f"{s_ind}    {arg}")
+                        for kw, arg in op.kwargs.items():
+                            print(f"{s_ind}    {kw}={arg}")
+                        print(f"{s_ind}  )")
+                print(f"{s_ind})")
+            else:
+                print(f"{s_ind}{op}")
+
+    def pretty_tokens(self):
+        tokens = ["DF"]
+        for op in self._levels:
+            tokens = op.pretty_tokens(tokens)
+        return tokens
+
+
+    def _pprint(self, indent=0):
+        tokens = self.pretty_tokens()
+        # for op in self.levels:
+        #     print(f"_pprint {op!r}")
+        #     if isinstance(op, Method):
+        #         print("MM")
+        #         tokens = op.pretty_tokens(tokens)
+        #     else:
+        #         print("OO")
+        #         tokens.extend(op.pretty_tokens())
+
+        def rec_fmt(l, indent_lvl):
+            for i in l:
+                if isinstance(i, list):
+                    yield from rec_fmt(i, indent_lvl+1)
+                else:
+                    yield (indent_lvl, i)
+        s_ind = "  "
+        lines = [
+            f"{s_ind * indent_lvl}{line}"
+            for indent_lvl, line in rec_fmt(tokens, indent)
+        ]
+        print("<<<")
+        print("\n".join(lines))
+        print(">>>")
+
+
     def __getattr__(self, name: str) -> 'AccessorBase':
+        print("attr", name)
         return type(self)(self._levels + (Attribute(name),))
 
     def __getitem__(self, key: str) -> 'AccessorBase':
@@ -330,6 +442,7 @@ class AccessorBase:
         if len(args) == 1 and isinstance(args[0], self.wrapped_cls):
             obj = root_df = args[0]
             for lvl in self._levels:
+                print(f"Executing {lvl}")
                 obj = lvl(obj, root_df)
             return obj
 
