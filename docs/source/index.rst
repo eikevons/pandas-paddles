@@ -27,7 +27,8 @@ API
    :recursive:
    :template: custom-module-template.rst
 
-   pandas_paddles.df_accessor
+   pandas_paddles.contexts
+   pandas_paddles.closures
    pandas_paddles.axis
 
 
