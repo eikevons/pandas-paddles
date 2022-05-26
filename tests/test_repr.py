@@ -1,4 +1,3 @@
-from pandas_paddles.df_accessor import AccessorBase
 from pandas_paddles import DF, S
 
 

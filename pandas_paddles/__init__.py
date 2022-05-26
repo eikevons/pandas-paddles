@@ -211,10 +211,10 @@ Author: Eike von Seggern <eike@vonseggern.space>
 __version__ = "1.4.0-dev"
 __all__ = ["C", "DF", "I", "S"]
 
-from .df_accessor import DataframeAccessor, SeriesAccessor
+from .contexts import DataframeContext, SeriesContext
 from .axis import ColumnSelectionComposer, SelectionComposerBase
 
 C = ColumnSelectionComposer("columns")
-DF = DataframeAccessor()
+DF = DataframeContext()
 I = SelectionComposerBase("index")
-S = SeriesAccessor()
+S = SeriesContext()

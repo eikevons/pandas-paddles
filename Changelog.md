@@ -1,6 +1,6 @@
 # Unreleases (YYYY-MM-DD)
 
-- ...
+- Refactor code: Give DF and S supporting classes better names.
 
 # 1.3.2 (2022-03-21)
 
