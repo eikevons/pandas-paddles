@@ -10,6 +10,8 @@ from warnings import warn
 import numpy as np
 import pandas as pd
 
+from .util import binary_dunders
+
 
 Indices = List[int]
 
@@ -137,6 +139,13 @@ class LabelSelectionOp(BaseOp):
 
         return Selection(indices)
 
+    def __str__(self):
+        s = f"[{','.join(repr(l) for l in self.labels)}]"
+        if self.level is not None:
+            return f"level({self.level}){s}"
+        return s
+
+
 
 class LabelPredicateOp(BaseOp):
     """Select labels by a predicate, e.g. ``startswith``."""
@@ -177,6 +186,10 @@ class BinaryOp(BaseOp):
         sel_right = self.right(axis, df)
 
         return self.op(sel_left, sel_right)
+
+    def __str__(self):
+        op_s = _binary_dunders.get(self.op, self.op)
+        return "{self.left} {op_s} {self.right}"
 
 
 class UnaryOp(BaseOp):
@@ -291,6 +304,9 @@ class OpComposerBase:
         """Evaluate the wrapped operations."""
         selection = self.op(self.axis, df)
         return selection.apply(self.axis, df)
+
+    def __str__(self):
+        return f"{self.axis}: {self.op}"
 
 
 class LabelComposer(OpComposerBase):
