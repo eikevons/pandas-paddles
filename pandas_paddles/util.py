@@ -84,3 +84,29 @@ class AstNode:
             del lines[1]
 
         return lines
+
+
+binary_dunders = {
+    "__and__": "&",
+    "__eq__": "==",
+    "__neq__": "!=",
+    "__neq__": "!=",
+    "__or__": "|",
+    "__add__": "+",
+    "__mul__": "*",
+    "__sub__": "-",
+    "__div__": "/",
+    "__truediv__": "//",
+    "__xor__": "^",
+    "__lt__": "<",
+    "__le__": "<=",
+    "__gt__": ">",
+    "__ge__": ">=",
+}
+
+
+unary_dunders = {
+    "__invert__": "~",
+    "__neg__": "-",
+    "__pos__": "+",
+}

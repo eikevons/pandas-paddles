@@ -5,31 +5,9 @@ from typing import Any, Callable, ClassVar, Dict, Iterable, Optional, Union, Tup
 import pandas as pd
 
 from .closures import ClosureBase, AttributeClosure, ItemClosure, MethodClosure
-from .util import AstNode
+from .util import AstNode, binary_dunders, unary_dunders
 
-_binary_dunders = {
-    "__and__": "&",
-    "__eq__": "==",
-    "__neq__": "!=",
-    "__neq__": "!=",
-    "__or__": "|",
-    "__add__": "+",
-    "__mul__": "*",
-    "__sub__": "-",
-    "__div__": "/",
-    "__truediv__": "//",
-    "__xor__": "^",
-    "__lt__": "<",
-    "__le__": "<=",
-    "__gt__": ">",
-    "__ge__": ">=",
-}
 
-_unary_dunders = {
-    "__invert__": "~",
-    "__neg__": "-",
-    "__pos__": "+",
-}
 
 
 def _add_dunder_operators(cls):
@@ -174,16 +152,16 @@ class ClosureFactoryBase:
                 cur.right = new
                 cur = new
             elif isinstance(c, MethodClosure):
-                if c.name in _binary_dunders and len(c.args) == 1 and not c.kwargs:
-                    op = _binary_dunders[c.name]
+                if c.name in binary_dunders and len(c.args) == 1 and not c.kwargs:
+                    op = binary_dunders[c.name]
                     right = to_node(c.args[0])
                     cur_root = cur.root
                     new = AstNode(op, left=cur_root, right=right)
                     new.left.parent = new
                     new.right.parent = new
                     cur = new
-                elif c.name in _unary_dunders and not c.args and not c.kwargs:
-                    op = _unary_dunders[c.name]
+                elif c.name in unary_dunders and not c.args and not c.kwargs:
+                    op = unary_dunders[c.name]
                     right = cur.root
                     new = AstNode((op,), right=right)
                     right.parent = new

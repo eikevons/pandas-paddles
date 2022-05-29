@@ -1,6 +1,6 @@
 """Select axis labels (columns or index) of a data frame."""
 import operator
-from typing import Any, Callable, List, Optional, Sequence
+from typing import Any, Callable, List, Optional, Sequence, Union
 try:
     from typing import Literal
 except ImportError:
@@ -10,7 +10,7 @@ from warnings import warn
 import numpy as np
 import pandas as pd
 
-from .util import binary_dunders
+from .util import binary_dunders, unary_dunders
 
 
 Indices = List[int]
@@ -142,7 +142,7 @@ class LabelSelectionOp(BaseOp):
     def __str__(self):
         s = f"[{','.join(repr(l) for l in self.labels)}]"
         if self.level is not None:
-            return f"level({self.level}){s}"
+            return f"[level={self.level}]{s}"
         return s
 
 
@@ -166,6 +166,16 @@ class LabelPredicateOp(BaseOp):
         mask = meth(*self.args, **self.kwargs)
         return Selection(mask=mask)
 
+    def __str__(self):
+        arg_strings = []
+        if self.args:
+            arg_strings.extend(repr(a) for a in self.args)
+        if self.kwargs:
+            arg_strings.extend(f"{k}={v!r}" for k, v in self.kwargs.items())
+        s = f"{self.meth}({', '.join(arg_stings)})"
+        if self.level is not None:
+            s = f"[level={self.level}].{s}"
+
 
 class EllipsisOp(BaseOp):
     """Select all columns."""
@@ -173,10 +183,13 @@ class EllipsisOp(BaseOp):
         labels = getattr(df, axis)
         return Selection(mask=np.ones(len(labels), dtype=bool))
 
+    def __str__(self):
+        return "..."
+
 
 class BinaryOp(BaseOp):
     """Combine two operators."""
-    def __init__(self, left: BaseOp, right: BaseOp, op: Callable[[Any, Any], Any]):
+    def __init__(self, left: BaseOp, right: BaseOp, op: Union[str, Callable[[Any], Any], Any]):
         self.left = left
         self.right = right
         self.op = op
@@ -185,22 +198,32 @@ class BinaryOp(BaseOp):
         sel_left = self.left(axis, df)
         sel_right = self.right(axis, df)
 
+        if isinstance(self.op, str):
+            return getattr(sel_left, self.op)(sel_right)
+
         return self.op(sel_left, sel_right)
 
     def __str__(self):
-        op_s = _binary_dunders.get(self.op, self.op)
-        return "{self.left} {op_s} {self.right}"
+        op_s = binary_dunders.get(self.op, str(self.op))
+        return f"{self.left} {op_s} {self.right}"
 
 
 class UnaryOp(BaseOp):
-    def __init__(self, wrapped: BaseOp, op: Callable[[Any], Any]):
+    def __init__(self, wrapped: BaseOp, op: Union[str, Callable[[Any], Any]]):
         self.wrapped = wrapped
         self.op = op
 
     def __call__(self, axis, df: pd.DataFrame) -> Selection:
         sel = self.wrapped(axis, df)
 
+        if isinstance(self.op, str):
+            return getattr(sel, self.op)()
+
         return self.op(sel)
+
+    def __str__(self):
+        op_s = unary_dunders.get(self.op, str(self.op))
+        return f"{op_s}{self.wrapped}"
 
 
 class DtypesOp:
@@ -227,6 +250,13 @@ class DtypesOp:
                 mask |= (df.dtypes == dtype).values
 
         return Selection(mask=mask)
+
+    def __str__(self):
+        dtype_strs = (
+            getattr(d, "__name__", str(d))
+            for d in self.dtypes
+        )
+        return f"[dtype={' | '.join(dtype_strs)}]"
 
 
 # Objects to create, compose, and evaluate column selection operators
@@ -264,7 +294,7 @@ class OpComposerBase:
         return OpComposerBase(self.axis, BinaryOp(
             self.op,
             self.get_other_op(other),
-            op=operator.and_,
+            op="__and__",
             ))
 
     def __rand__(self, other):
@@ -278,14 +308,14 @@ class OpComposerBase:
         return OpComposerBase(self.axis, BinaryOp(
             self.op,
             self.get_other_op(other),
-            op=operator.or_,
+            op="__or__",
             ))
 
     def __ror__(self, other):
         return OpComposerBase(self.axis, BinaryOp(
             self.get_other_op(other),
             self.op,
-            op=operator.or_,
+            op="__or__",
         ))
 
     def __add__(self, other):
@@ -297,7 +327,7 @@ class OpComposerBase:
     def __invert__(self):
         return OpComposerBase(self.axis, UnaryOp(
             self.op,
-            op=operator.invert,
+            op="__invert__",
         ))
 
     def __call__(self, df:pd.DataFrame) -> pd.Index:
