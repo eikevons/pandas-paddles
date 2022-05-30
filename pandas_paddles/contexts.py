@@ -52,8 +52,6 @@ def _add_dunder_operators(cls):
                 return self._operator_proxy(op)(*args, **kwargs)
             # Update method metadata to improve usablility
             op_wrap.__name__ = op
-            orig_doc = None
-            orig_annot = None
             for pd_cls in {pd.Series} | {cls.wrapped_cls}:
                 if hasattr(pd_cls, op):
                     a = getattr(pd_cls, op)

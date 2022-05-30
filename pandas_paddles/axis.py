@@ -140,11 +140,13 @@ class LabelSelectionOp(BaseOp):
         return Selection(indices)
 
     def __str__(self):
-        s = f"[{','.join(repr(l) for l in self.labels)}]"
+        labels = [repr(l) for l in self.labels]
+        level_indicator = ""
         if self.level is not None:
-            return f"[level={self.level}]{s}"
-        return s
-
+            level_indicator = f"level={self.level}: "
+        if len(labels) > 1 or self.level:
+            return f"({level_indicator}{' | '.join(labels)})"
+        return labels[0]
 
 
 class LabelPredicateOp(BaseOp):
@@ -172,7 +174,7 @@ class LabelPredicateOp(BaseOp):
             arg_strings.extend(repr(a) for a in self.args)
         if self.kwargs:
             arg_strings.extend(f"{k}={v!r}" for k, v in self.kwargs.items())
-        s = f"{self.meth}({', '.join(arg_stings)})"
+        s = f"{self.meth}({', '.join(arg_strings)})"
         if self.level is not None:
             s = f"[level={self.level}].{s}"
 
@@ -205,7 +207,7 @@ class BinaryOp(BaseOp):
 
     def __str__(self):
         op_s = binary_dunders.get(self.op, str(self.op))
-        return f"{self.left} {op_s} {self.right}"
+        return f"({self.left} {op_s} {self.right})"
 
 
 class UnaryOp(BaseOp):
@@ -256,7 +258,7 @@ class DtypesOp:
             getattr(d, "__name__", str(d))
             for d in self.dtypes
         )
-        return f"[dtype={' | '.join(dtype_strs)}]"
+        return f"(dtype={' | '.join(dtype_strs)})"
 
 
 # Objects to create, compose, and evaluate column selection operators
