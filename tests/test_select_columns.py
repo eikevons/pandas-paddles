@@ -1,4 +1,6 @@
 import pickle
+import string
+
 import pandas as pd
 import pytest
 
@@ -38,9 +40,31 @@ def test_basic(simple_df):
     assert cols(simple_df, col_sel) == ["y", "z", "x"]
 
 
+def test_basic_slice(simple_df):
+    col_sel = C["y":"u"]
+    assert cols(simple_df, col_sel) == ["y", "z", "u"]
+
+
+def test_invert_slice(simple_df):
+    col_sel = ~C["y":"z"]
+    assert cols(simple_df, col_sel) == ["x", "u"]
+
+    col_sel = C[:"y"]
+    assert cols(simple_df, col_sel) == ["x", "y"]
+
+    col_sel = C["z":]
+    assert cols(simple_df, col_sel) == ["z", "u"]
+
+
 def test_combine(simple_df):
     col_sel = C["y"] | C["z"] | C["x"]
     assert cols(simple_df, col_sel) == ["y", "z", "x"]
+
+
+def test_combine_slice():
+    df = pd.DataFrame(columns=list(string.ascii_lowercase))
+    col_sel = C["g":"i"] | C["b":"d"]
+    assert cols(df, col_sel) == ["g", "h", "i", "b", "c", "d"]
 
 
 def test_ellipsis(simple_df):
@@ -123,6 +147,24 @@ def test_level0_composition(mi_df):
         ("b", "Y"),
         ("b", "Z"),
     ]
+    assert cols(mi_df, col_sel) == expected
+
+
+def test_level0_slice(mi_df):
+    print(mi_df.columns)
+    expected = [
+        ("a", "X"),
+        ("a", "Y"),
+        ("a", "Z"),
+        ("b", "X"),
+        ("b", "Y"),
+        ("b", "Z"),
+    ]
+
+    col_sel = C.levels[0]["a":"b"]
+    assert cols(mi_df, col_sel) == expected
+
+    col_sel = C.levels["one"]["a":"b"]
     assert cols(mi_df, col_sel) == expected
 
 
