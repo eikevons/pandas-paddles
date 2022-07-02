@@ -96,10 +96,11 @@ class LabelSelectionOp(BaseOp):
     def __init__(self, labels, level=None):
         if isinstance(labels, list):
             labels = tuple(labels)
-        elif not isinstance(labels, tuple):
+        elif not isinstance(labels, (slice, tuple)):
+            # Convert "scalar" values to some iterable
             labels = (labels,)
         self.labels = labels
-        self.level=level
+        self.level = level
 
     def __call__(self, axis, df):
         labels = getattr(df, axis)
@@ -110,8 +111,29 @@ class LabelSelectionOp(BaseOp):
             cands = labels.get_level_values(self.level)
 
         indices = []
-        for lbl in self.labels:
-            indices.extend(idx[cands == lbl])
+        if isinstance(self.labels, tuple):
+            for lbl in self.labels:
+                indices.extend(idx[cands == lbl])
+        elif isinstance(self.labels, slice):
+            # NOTE: We need to make this more complex because we also need
+            # to treat situation with multiple repetitions of the same
+            # value, e.g., cases of multi-index levels.
+            in_slice = self.labels.start is None
+            reached_slice_stop = False
+            for i, lbl in enumerate(cands):
+                if not in_slice and lbl == self.labels.start:
+                    in_slice = True
+                if reached_slice_stop and lbl != self.labels.stop:
+                    # We stepped over the end of the slice.
+                    break
+                if in_slice:
+                    indices.append(i)
+                    if self.labels.stop is not None and lbl == self.labels.stop:
+                        reached_slice_stop = True
+        else:
+            # This should never be reached becaus of the argument processing
+            # in __init__.
+            raise ValueError(f"Unexpected type for self.labels: {type(self.labels)}: {self.labels!r}")
 
         return Selection(indices)
 
@@ -380,11 +402,11 @@ class SelectionComposerBase(LabelComposer):
 
     # Warn about experimental status of this feature.
     # TODO: Remove once API is stable
-    def __getattribute__(self, name):
-        attr = super().__getattribute__(name)
-        if name != "__init__":
-            warn("Column/index selection is an experimental feature! The API might change in minor version updates.", stacklevel=2)
-        return attr
+    # def __getattribute__(self, name):
+    #     attr = super().__getattribute__(name)
+    #     if name != "__init__":
+    #         warn("Column/index selection is an experimental feature! The API might change in minor version updates.", stacklevel=2)
+    #     return attr
 
 
 class ColumnSelectionComposer(SelectionComposerBase):
