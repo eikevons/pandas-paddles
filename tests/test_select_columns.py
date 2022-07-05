@@ -151,7 +151,6 @@ def test_level0_composition(mi_df):
 
 
 def test_level0_slice(mi_df):
-    print(mi_df.columns)
     expected = [
         ("a", "X"),
         ("a", "Y"),
@@ -166,6 +165,21 @@ def test_level0_slice(mi_df):
 
     col_sel = C.levels["one"]["a":"b"]
     assert cols(mi_df, col_sel) == expected
+
+
+def test_level1_slice(mi_df):
+    expected = [
+        ("a", "Y"),
+        ("a", "Z"),
+    ]
+
+    col_sel = C.levels[1]["Y":"Z"]
+    assert cols(mi_df, col_sel) == expected
+
+    col_sel = C.levels["two"]["Y":"Z"]
+    assert cols(mi_df, col_sel) == expected
+
+
 
 
 def test_combine_complex(mi_df):
