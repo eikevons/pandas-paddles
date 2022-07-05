@@ -123,7 +123,7 @@ Column or index selection
     This feature is **experimental**! The API might change in minor version updates.
 
 See :class:`~pandas_paddles.axis.ColumnSelectionComposer` for complete API
-documentation. (:class:`~pandas.paddles.axis.SelectionComposerBase` for
+documentation. (:class:`~pandas_paddles.axis.SelectionComposerBase` for
 index-wise selection.)
 
 .. note::
@@ -134,7 +134,7 @@ index-wise selection.)
 
 Move some columns to the left of the data frame. ``...`` is used to include
 all other columns at the end and the typical logical operators ``&``, ``|``
-(or ``+``), and ``~`` to compose selections
+(or ``+``), and ``~`` to compose selections:
 
 >>> from pandas_paddles import C
 >>> df = pd.DataFrame({"x": 1, "y": 3.14, "z": "abc", "u": 42}, index=[0])
@@ -142,25 +142,31 @@ all other columns at the end and the typical logical operators ``&``, ``|``
       y   u  x    z
 0  3.14  42  1  abc
 
-Select by "simple" dtype
+Select slices of columns:
+
+>>> df.loc[:, C["y":"z"] | ...]
+      y    z  x   u
+0  3.14  abc  1  42
+
+Select by "simple" dtype:
 
 >>> df.loc[:, C.dtype == int]
    x   u
 0  1  42
 
-Select by "complex" dtype
+Select by "complex" dtype:
 
 >>> df.loc[:, C.dtype == str]
      z
 0  abc
 
-Select by multiple dtypes
+Select by multiple dtypes:
 
 >>> df.loc[:, C.dtype.isin((int, float))]
    x     y   u
 0  1  3.14  42
 
-Select by multi-index level
+Select by multi-index level:
 
 >>> midf = pd.DataFrame.from_records(
 ... data=[range(9)],
@@ -178,6 +184,17 @@ two  x  y  z  x  y  z  x  y  z
 one  b  c  a
 two  z  z  z
 0    5  8  2
+
+.. warning::
+    Selecting slices of a multi-index level might not work as expected
+    because only one consecutive slice is taken from the level's labels,
+    e.g. only the first ``"x":"y"`` slice can be fetched from level 1 of
+    ``midf``:
+
+    >>> midf.loc[:, C.levels[1]["x":"y"]]
+    one  a   
+    two  x  y
+    0    0  1
 
 Comparison
 ~~~~~~~~~~

@@ -1,6 +1,7 @@
 # Unreleases (YYYY-MM-DD)
 
 - Refactor code: Give DF and S supporting classes better names.
+- Allow selecting slices of labels, e.g., `C["C":"G"]`.
 
 # 1.3.2 (2022-03-21)
 
