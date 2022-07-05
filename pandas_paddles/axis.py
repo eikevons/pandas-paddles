@@ -349,6 +349,69 @@ class DtypeComposer:
 
 
 class SelectionComposerBase(LabelComposer):
+    """Compose callable to select or sort axis labels (index and columns).
+
+    .. note::
+        Use :class:`ColumnSelectionComposer` (``C``) if you want to select
+        columns.
+
+    This acts as global entrypoint.
+
+    Use the global instance like::
+
+        # Move rows x, z to the top
+        from pandas_paddles import I
+        df.loc[I["x", "z"] | ...]
+
+    Other use-cases:
+
+    - Select slices of rows::
+
+        df.loc[I["B":"E"] | I["P":"S"]]
+
+    - Select all rows with index starting with ``"PRE"``::
+
+        df.loc[I.startswith("PRE")]
+        # or just move them to the top and keep the remaining columns in
+        # the data frame
+        df.loc[I.startswith("PRE") | ...]
+
+    - Access the level of a multi-index with::
+
+        I.levels[0]
+        I.levels["level-name"]
+
+    Selections can be combined with ``&`` (intersection) and ``|`` or ``+``
+    (union). In intersections, the right-most order takes precedence, while
+    it's the left-most for unions, e.g. the following will select all
+    rows with first-level label "b" starting with the rows with
+    second-level labels "Y" and "Z" followed by all other second-level
+    labels with first-level "b"::
+
+        I.levels[0]["b"] & (I.levels[1]["Y"] | ...)
+
+    Inversion (negation) of selections is possible with ``~``, e.g. to select all but first-level label "b"::
+
+        ~I.levels[0]["b"]
+
+    This can also be applied to composed selections::
+
+        ~(I.levels[0]["b"] | I.levels[1]["X", "Y"])
+    """
+    def __init__(self, axis, op=None):
+        super().__init__(axis, op=op)
+        self.levels = LeveledComposer(self.axis)
+
+    # Warn about experimental status of this feature.
+    # TODO: Remove once API is stable
+    def __getattribute__(self, name):
+        attr = super().__getattribute__(name)
+        if name != "__init__":
+            warn("Column/index selection is an experimental feature! The API might change in minor version updates.", stacklevel=2)
+        return attr
+
+
+class ColumnSelectionComposer(SelectionComposerBase):
     """Compose callable to select or sort columns.
 
     This acts as global entrypoint.
@@ -360,6 +423,11 @@ class SelectionComposerBase(LabelComposer):
         df.loc[:, C["x", "z"] | ...]
 
     Other use-cases:
+
+    - Select slices of columns, e.g., when handling Excel-like named columns
+      (A, B, ...)::
+
+        df.loc[:, C["B":"E"] | C["P":"S"]]
 
     - Select by dtype::
 
@@ -379,6 +447,11 @@ class SelectionComposerBase(LabelComposer):
         # the data frame
         df.loc[:, C.startswith("PRE") | ...]
 
+    - Access the level of a multi-index with::
+
+        C.levels[0]
+        C.levels["level-name"]
+
     Selections can be combined with ``&`` (intersection) and ``|`` or ``+``
     (union). In intersections, the right-most order takes precedence, while
     it's the left-most for unions, e.g. the following will select all
@@ -396,20 +469,6 @@ class SelectionComposerBase(LabelComposer):
 
         ~(C.levels[0]["b"] | C.levels[1]["X", "Y"])
     """
-    def __init__(self, axis, op=None):
-        super().__init__(axis, op=op)
-        self.levels = LeveledComposer(self.axis)
-
-    # Warn about experimental status of this feature.
-    # TODO: Remove once API is stable
-    # def __getattribute__(self, name):
-    #     attr = super().__getattribute__(name)
-    #     if name != "__init__":
-    #         warn("Column/index selection is an experimental feature! The API might change in minor version updates.", stacklevel=2)
-    #     return attr
-
-
-class ColumnSelectionComposer(SelectionComposerBase):
     def __init__(self, axis, op=None, sample_size=None):
         super().__init__(axis, op=op)
         self.dtype = DtypeComposer(self.axis)
