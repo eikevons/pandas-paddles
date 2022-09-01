@@ -85,6 +85,35 @@ class AstNode:
 
         return lines
 
+    def collapse(self, allowed_width=80):
+        if self.left:
+            self.left, collapsed = self.left.collapse(allowed_width - 1)
+            if not collapsed:
+                return self, False
+        if self.right:
+            self.right, collapsed = self.right.collapse(allowed_width - 1)
+            if not collapsed:
+                return self, False
+
+        if isinstance(self.payload, str):
+            # print("SS {!r} {!r} {!r}".format(self.payload, self.left and self.left.payload, self.right and self.right.payload))
+            if self.right and isinstance(self.right.payload, str):
+                # print("RR")
+                if self.left and isinstance(self.left.payload, str):
+                    # print("LL")
+                    # Binary operator
+                    new_payload = f"{self.left.payload} {self.payload} {self.right.payload}"
+                else:
+                    # Unary operator
+                    new_payload = f"{self.payload}{self.right.payload}"
+
+                # print("NP", new_payload)
+
+                if len(new_payload) + 2 <= allowed_width:
+                    return AstNode(new_payload, self.parent), True
+        # print("CC {!r} {!r} {!r}".format(self.payload, self.left and self.left.payload, self.right and self.right.payload))
+        return self, True
+
 
 binary_dunders = {
     "__and__": "&",
