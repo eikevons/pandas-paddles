@@ -57,6 +57,8 @@ jobs:
           rm poetry.lock
           # Pin the pandas version in dependencies
           sed -i 's/pandas = ".*"$/pandas = "${{ matrix.pandas-version }}"/' pyproject.toml
+          # Pin the pandas version in dependencies
+          sed -i 's/python = ".*"$/python = "${{ matrix.python-version }}"/' pyproject.toml
           cat pyproject.toml
           poetry install --no-root
 
