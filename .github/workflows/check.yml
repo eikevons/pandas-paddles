@@ -8,7 +8,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         # Pandas >= 1.2 requires Python >= 3.7
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.7.16", "3.8", "3.9", "3.10", "3.11"]
         pandas-version: ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "2.0"]
         exclude:
           - pandas-version: "1.0"
@@ -56,9 +56,9 @@ jobs:
           # Remove poetry.lock to allow installing different versions of pandas
           rm poetry.lock
           # Pin the pandas version in dependencies
-          sed -i 's/pandas = ".*"$/pandas = "${{ matrix.pandas-version }}.*"/' pyproject.toml
+          sed -i 's/pandas = ".*"$/pandas = "~${{ matrix.pandas-version }}"/' pyproject.toml
           # Pin the pandas version in dependencies
-          sed -i 's/python = ".*"$/python = "${{ matrix.python-version }}.*"/' pyproject.toml
+          sed -i 's/python = ".*"$/python = "~${{ matrix.python-version }}"/' pyproject.toml
           cat pyproject.toml
           poetry install --no-root
 
