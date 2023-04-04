@@ -30,17 +30,17 @@ jobs:
             python-version: "3.11"
 
           - pandas-version: "1.4"
-            python-version: "3.7"
+            python-version: "3.7.16"
           - pandas-version: "1.4"
             python-version: "3.11"
 
           - pandas-version: "1.5"
-            python-version: "3.7"
+            python-version: "3.7.16"
           - pandas-version: "1.5"
             python-version: "3.11"
 
           - pandas-version: "2.0"
-            python-version: "3.7"
+            python-version: "3.7.16"
     steps:
       - uses: actions/checkout@v2
 
