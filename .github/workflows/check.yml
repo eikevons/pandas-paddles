@@ -55,11 +55,10 @@ jobs:
           poetry config virtualenvs.create false
           # Remove poetry.lock to allow installing different versions of pandas
           rm poetry.lock
+          # Pin the pandas version in dependencies
+          sed -i 's/pandas = ".*"$/pandas = "${{ matrix.pandas-version }}"/' pyproject.toml
+          cat pyproject.toml
           poetry install --no-root
-
-      - name: Install specified pandas version
-        run: |
-          pip install "pandas==${{ matrix.pandas-version }}.*"
 
       - name: Run unit tests
         run: |
