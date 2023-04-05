@@ -4,6 +4,8 @@
 
 - Refactor code: Give DF and S supporting classes better names.
 - Allow selecting slices of labels, e.g., `C["C":"G"]`.
+- Support `pandas` version 2.
+
 
 # 1.3.2 (2022-03-21)
 
