@@ -406,8 +406,8 @@ class SelectionComposerBase(LabelComposer):
     # TODO: Remove once API is stable
     def __getattribute__(self, name):
         attr = super().__getattribute__(name)
-        if name != "__init__":
-            warn("Column/index selection is an experimental feature! The API might change in minor version updates.", stacklevel=2)
+        if not name in {"__init__", "axis"}:
+            warn("Column/index selection with C/I is an experimental feature! The API might change in minor version updates.", stacklevel=2)
         return attr
 
 
