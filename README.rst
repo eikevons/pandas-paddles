@@ -47,7 +47,7 @@ Overview
   function or referencing columns in R's `dplyr
   <https://dplyr.tidyverse.org/articles/dplyr.html>`_.
 - **Install** from PyPI with ``pip install
-  pandas-paddles``. Pandas versions 1.0+ (``^1.0``) are supported.
+  pandas-paddles``. Pandas versions 1+ (``>=1,<3``) are supported.
 - **Documentation** can be found at `readthedocs
   <https://pandas-paddles.readthedocs.io/en/latest/>`_.
 - **Source code** can be obtained from `GitHub <https://github.com/eikevons/pandas-paddles>`_.
