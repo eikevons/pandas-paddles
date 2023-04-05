@@ -1,5 +1,7 @@
 # Unreleases (YYYY-MM-DD)
 
+- Don't warn when creating `C` and `I` instances.
+
 # 1.3.3 (2023-04-05)
 
 - Refactor code: Give DF and S supporting classes better names.
