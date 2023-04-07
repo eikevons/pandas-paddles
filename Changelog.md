@@ -1,5 +1,9 @@
 # Unreleases (YYYY-MM-DD)
 
+- ...
+
+# 1.3.4 (2023-04-07)
+
 - Don't warn when creating `C` and `I` instances.
 
 # 1.3.3 (2023-04-05)
