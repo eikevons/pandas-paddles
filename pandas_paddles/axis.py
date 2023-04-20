@@ -15,8 +15,22 @@ Indices = List[int]
 
 
 class Selection:
-    """Container for selection along a data frame axis with combination logic."""
+    """Container for selection along a data frame axis with combination logic. """
     def __init__(self, included:Optional[Indices]=None, excluded:Optional[Indices]=None, *,  mask:Optional[Sequence[int]]=None):
+        """
+        If ``mask`` is passed, ``included`` and ``excluded`` must be ``None``!
+
+        Parameters
+        ----------
+        included:
+            List of indices included in the selection.
+        excluded:
+            List of indices excluded from the selection.
+        mask
+            Boolean array that will be converted to list of included
+            indices: All indices with corresponding truthy/non-zero value
+            will be included in the selection.
+        """
         if mask is not None:
             if included is not None:
                 raise ValueError("included indices and mask cannot be passed together")
@@ -137,6 +151,20 @@ class LabelSelectionOp(BaseOp):
 
         return Selection(indices)
 
+    def __str__(self):
+        if isinstance(self.labels, slice):
+            fmt = lambda o, default: repr(o) if o else default
+            items = [fmt(self.labels.start, ''), fmt(self.labels.stop, '')]
+            if self.labels.step:
+                items.append(repr(self.labels.step))
+            pp_labels = ':'.join(items)
+        else:
+            pp_labels = ', '.join(str(l) for l in self.labels)
+
+        if self.level:
+            return f'(level={self.level})[{pp_labels}]'
+        return f'[{pp_labels}]'
+
 
 class LabelPredicateOp(BaseOp):
     """Select labels by a predicate, e.g. ``startswith``."""
@@ -145,6 +173,21 @@ class LabelPredicateOp(BaseOp):
         self.args = args
         self.kwargs = kwargs
         self.level = level
+
+    def __str__(self):
+        def pp(a):
+            if isinstance(a, tuple):
+                return [repr(i) for i in a]
+            elif isinstance(a, dict):
+                return [f'{k}={v!r}' for k, v in a.items()]
+
+            return [repr(a)]
+
+        pp_args = ', '.join(pp(self.args) + pp(self.kwargs))
+
+        if self.level:
+            return f'(level={self.level}).{self.meth}({pp_args})'
+        return f'.{self.meth}({pp_args})'
 
     def __call__(self, axis, df: pd.DataFrame) -> Selection:
         labels = getattr(df, axis)
@@ -164,6 +207,9 @@ class EllipsisOp(BaseOp):
         labels = getattr(df, axis)
         return Selection(mask=np.ones(len(labels), dtype=bool))
 
+    def __str__(self):
+        return '...'
+
 
 class BinaryOp(BaseOp):
     """Combine two operators."""
@@ -171,6 +217,10 @@ class BinaryOp(BaseOp):
         self.left = left
         self.right = right
         self.op = op
+
+    def __str__(self):
+        op_name = getattr(self.op, '__name__', str(self.op))
+        return f'({self.left}) {op_name} ({self.right})'
 
     def __call__(self, axis, df: pd.DataFrame) -> Selection:
         sel_left = self.left(axis, df)
@@ -184,6 +234,10 @@ class UnaryOp(BaseOp):
         self.wrapped = wrapped
         self.op = op
 
+    def __str__(self):
+        op_name = getattr(self.op, '__name__', str(self.op))
+        return f'{op_name}({self.wrapped})'
+
     def __call__(self, axis, df: pd.DataFrame) -> Selection:
         sel = self.wrapped(axis, df)
 
@@ -195,6 +249,12 @@ class DtypesOp:
     def __init__(self, dtypes: Sequence, sample_size:int=10):
         self.dtypes = dtypes
         self.sample_size = sample_size
+
+    def __str__(self):
+        dtypes = self.dtypes
+        if len(dtypes) == 1:
+            return f'dtype == {dtypes[0]}'
+        return f'dtype in {dtypes}'
 
     def __call__(self, axis, df):
         if axis != "columns":
@@ -227,6 +287,9 @@ class OpComposerBase:
     def __init__(self, axis:Literal["columns", "index"], op):
         self.axis = axis
         self.op = op or Selection()
+
+    def __str__(self):
+        return f'<{self.axis}: {self.op}>'
 
     def get_other_op(self, other):
         """Get/create a wrapped operation for composing operations."""
