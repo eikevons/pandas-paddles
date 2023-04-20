@@ -202,7 +202,7 @@ class LabelPredicateOp(BaseOp):
 
 
 class EllipsisOp(BaseOp):
-    """Select all columns."""
+    """Select all labels (i.e. columns or rows)."""
     def __call__(self, axis, df: pd.DataFrame) -> Selection:
         labels = getattr(df, axis)
         return Selection(mask=np.ones(len(labels), dtype=bool))
@@ -212,7 +212,12 @@ class EllipsisOp(BaseOp):
 
 
 class BinaryOp(BaseOp):
-    """Combine two operators."""
+    """Combine two selection operators with a binary operator.
+
+    Used to implement, e.g.::
+
+        >>> sel_1 | sel_2
+    """
     def __init__(self, left: BaseOp, right: BaseOp, op: Callable[[Any, Any], Any]):
         self.left = left
         self.right = right
@@ -230,6 +235,12 @@ class BinaryOp(BaseOp):
 
 
 class UnaryOp(BaseOp):
+    """Apply unary operator on selection operator.
+
+    Used to implement, e.g., negation::
+
+        >>> ~sel
+    """
     def __init__(self, wrapped: BaseOp, op: Callable[[Any], Any]):
         self.wrapped = wrapped
         self.op = op
@@ -281,8 +292,8 @@ class OpComposerBase:
     """Base-class for composing column selection operations.
 
     This class wraps around the actual operation and overloads the relevant
-    operators (``+``, ``&``, and ``|``) and defers the evaluation of the
-    operators until called (by the context data-frame in ``.loc[]``).
+    operators (``+``, ``&``, ``|``, and ``~``) and defers the evaluation of
+    the operators until called (by the context data-frame in ``.loc[]``).
     """
     def __init__(self, axis:Literal["columns", "index"], op):
         self.axis = axis
@@ -388,6 +399,7 @@ class LabelComposer(OpComposerBase):
 
     def match(self, *args, **kwargs):
         return self._get_op_composer(LabelPredicateOp("match", args, kwargs, self.level))
+
 
 class LeveledComposer:
     """Compose callable to access multi-level index labels."""
