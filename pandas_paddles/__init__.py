@@ -226,10 +226,11 @@ code::
 Author: Eike von Seggern <eike@vonseggern.space>
 """
 __version__ = "1.4.0-dev"
-__all__ = ["C", "DF", "I", "S"]
+__all__ = ["C", "DF", "I", "S", "report"]
 
 from .contexts import DataframeContext, SeriesContext
 from .axis import ColumnSelectionComposer, SelectionComposerBase
+from .pipe import report
 
 C = ColumnSelectionComposer("columns")
 DF = DataframeContext()
