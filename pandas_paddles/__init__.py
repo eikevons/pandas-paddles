@@ -21,6 +21,8 @@ operations much more concisely. See `Comparison`_ below.
 * ``I`` can be used to simplify row selection in
   :attr:`~pandas.DataFrame.loc` by row label. (See `Column or index
   selection`_)
+* :func:`~pandas_paddles.pipe.report` can be used to inspect the dataframe in a chain
+  of operations.
 
 DataFrame examples
 ~~~~~~~~~~~~~~~~~~
@@ -209,7 +211,7 @@ a way that does not need to reference the initial dataframes::
              )
 
 Without operator chaining, the data frame needs to be reassigned and
-referenced multiple times, which adds a lot of nois.::
+referenced multiple times, which adds a lot of noise::
 
        df_out = df_in.loc[df_in["x"] == 3]
        df_out = df_out.assign(x_is_even = (df_out["x"] % 2) == 0)

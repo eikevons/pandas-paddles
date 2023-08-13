@@ -20,34 +20,82 @@ def _generate_report(args, print_func, print_kwargs):
 
 
 def report(*args, print_func=print, **print_kwargs):
-    """Print summary report for a data frame.
+    r"""Print summary report for a data frame.
 
-    This function is intended to be used in ``DataFrame.pipe()``. It can be used either by calling with the needed arguments, e.g.,::
+    This function is intended to be used in ``DataFrame.pipe()``. It can be
+    used either by calling with the needed arguments ("call" semantics),
+    e.g.,::
 
         df.pipe(report("Label"))
 
-    or by passing the arguments via ``pipe``, e.g.,::
+    or by passing the arguments via ``pipe`` ("no-call" semantics), e.g.,::
 
         df.pipe(report, "Label")
 
+    See *Returns* below.
+
     Examples
     --------
-    Report the shape
-    >>> df.pipe(report())
+    Report the shape::
 
-    or
+        df = pd.DataFrame({
+            "x": range(3),
+            "y": ["a", "b", "a"],
+        })
+        df.pipe(report())
+        # or
+        df.pipe(report)
+        # Output:
+        # (3, 2)
 
-    >>> df.pipe(report)
+    Report the shape prefixed with a label::
 
-    Report the shape prefixed with a label
-    >>> df.pipe(report("Label"))
+        df.pipe(report("Label"))
+        # or
+        df.pipe(report, "Label")
+        # Output:
+        # Label (3, 2)
 
-    Combine with ``DF``
-    >>> df.pipe(report("The shape:", DF.shape, "and unique values in some columns", DF["column"].nunique()))
+    Combine with ``DF``::
 
-    Pass arguments to ``print()``
+        df.pipe(report("The shape:", DF.shape, "and unique y-values:", DF["y"].nunique()))
+        # or
+        df.pipe(report, "The shape:", DF.shape, "and unique y-values:", DF["y"].nunique())
+        # Output:
+        # The shape: (3, 2) and unique y-values: 2
 
-    >>> df.pipe(report, sep="\n")
+    Pass arguments to ``print()``::
+
+        df.pipe(report("Label", sep="\n"))
+        # or
+        df.pipe(report, "Label", sep="\n")
+        # Output:
+        # Label
+        # (3, 2)
+
+    Parameters
+    ----------
+    args : str, callable
+        Things to be printed. Can be either ``str`` or callables taking a
+        data frame as single argument, e.g. created with ``DF``.
+
+        The first argument can be a ``~pandas.DataFrame``.
+    print_func : callable
+        The function used to print the "report". Defaults to :func:`print`.
+    print_kwargs
+        All keyword arguments are passed through to ``print_func``.
+
+    Returns
+    -------
+    callable, pandas.DataFrame
+        If the first argument is a ``~pandas.DataFrame``, the report is
+        generated and this data frame is returned. This is the "no-call"
+        semantics above (``df.pipe(report, "Label")``).
+
+        Otherwise, a function is returned that takes a single
+        ``~pandas.DataFrame`` argument that generates the report and
+        returned the passed data frame. This is the "call" semantics above
+        (``df.pipe(report("Label"))``.
     """
     df = None
     args = list(args)
