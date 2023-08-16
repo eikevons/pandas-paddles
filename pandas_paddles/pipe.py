@@ -14,7 +14,8 @@ def _generate_report(args, print_func, print_kwargs):
                 to_print.append(a(df))
             else:
                 to_print.append(a)
-        return print_func(*to_print, **print_kwargs)
+        print_func(*to_print, **print_kwargs)
+        return df
     return inner_report
 
 

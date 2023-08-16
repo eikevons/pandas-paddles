@@ -19,9 +19,10 @@ def df():
     'arg', [report, report()]
 )
 def test_basic(arg, df, capsys):
-    df.pipe(arg)
+    df2 = df.pipe(arg)
     captured = capsys.readouterr()
     assert captured.out == '(3, 2)\n'
+    assert df2 is df
 
 @pytest.mark.parametrize(
     'args',
@@ -31,9 +32,10 @@ def test_basic(arg, df, capsys):
     ]
 )
 def test_with_label(args, df, capsys):
-    df.pipe(*args)
+    df2 = df.pipe(*args)
     captured = capsys.readouterr()
     assert captured.out == 'Label (3, 2)\n'
+    assert df2 is df
 
 @pytest.mark.parametrize(
     ['args', 'kwargs'],
@@ -49,9 +51,10 @@ def test_with_label(args, df, capsys):
     ]
 )
 def test_with_label_kwargs(args, kwargs, df, capsys):
-    df.pipe(*args, **kwargs)
+    df2 = df.pipe(*args, **kwargs)
     captured = capsys.readouterr()
     assert captured.out == 'Label # (3, 2)\n'
+    assert df2 is df
 
 @pytest.mark.parametrize(
     ['args', 'kwargs'],
@@ -67,9 +70,10 @@ def test_with_label_kwargs(args, kwargs, df, capsys):
     ]
 )
 def test_with_kwargs(args, kwargs, df, capsys):
-    df.pipe(*args, **kwargs)
+    df2 = df.pipe(*args, **kwargs)
     captured = capsys.readouterr()
     assert captured.out == '(3, 2) #'
+    assert df2 is df
 
 def test_with_custom_print_func_called(df):
     out = {}
@@ -78,8 +82,9 @@ def test_with_custom_print_func_called(df):
             str(a) for a in args
             )
 
-    df.pipe(report(print_func=custom_fn, out=out))
+    df2 = df.pipe(report(print_func=custom_fn, out=out))
     assert out == {"buf":  "(3, 2)"}
+    assert df2 is df
 
 def test_with_custom_print_func_pipe_args(df):
     out = {}
@@ -88,5 +93,6 @@ def test_with_custom_print_func_pipe_args(df):
             str(a) for a in args
             )
 
-    df.pipe(report, print_func=custom_fn, out=out)
+    df2 = df.pipe(report, print_func=custom_fn, out=out)
     assert out == {"buf":  "(3, 2)"}
+    assert df2 is df
