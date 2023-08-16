@@ -1,6 +1,11 @@
 # Unreleases (YYYY-MM-DD)
 
+- ...
+
+# 1.4.0 (2023-08-16)
+
 - Add `report` function.
+- Add prettier string representations for `C` and `I` expressions.
 
 # 1.3.4 (2023-04-07)
 
