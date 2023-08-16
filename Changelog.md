@@ -1,6 +1,6 @@
 # Unreleases (YYYY-MM-DD)
 
-- ...
+- Add `report` function.
 
 # 1.3.4 (2023-04-07)
 

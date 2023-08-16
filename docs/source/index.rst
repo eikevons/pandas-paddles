@@ -30,6 +30,7 @@ API
    pandas_paddles.contexts
    pandas_paddles.closures
    pandas_paddles.axis
+   pandas_paddles.pipe
 
 
 Indices and tables
