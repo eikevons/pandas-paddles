@@ -134,6 +134,12 @@ class ClosureFactoryBase:
         # return "".join(str(l) for l in self._closures)
         return str(self.as_tree().pprint())
 
+    # GH-21: Needed to use S in groupby(...)[col].agg([S. ...])
+    @property
+    def __name__(self) -> str:
+        lines = str(self).splitlines()
+        return ' '.join(l.strip() for l in lines)
+
     def __getattr__(self, name: str) -> "ClosureFactoryBase":
         return type(self)(self._closures + (AttributeClosure(name),))
 
