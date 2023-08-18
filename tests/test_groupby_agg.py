@@ -36,7 +36,7 @@ def test_groupby_apply_column_agg_composed(df):
     )
     return pd.testing.assert_series_equal(test, expected)
 
-def test_groupby_apply_column_agg_multiple(df):
+def test_groupby_apply_column_agg_list(df):
     test = (df
             .groupby("y")
             ["x"]
@@ -47,6 +47,40 @@ def test_groupby_apply_column_agg_multiple(df):
             'S.min()': [0, 1],
             'S.max()': [4, 3],
             'S.max() - S.min()': [4, 2],
+        },
+        index=pd.Index(['a', 'b'], name='y'),
+    )
+    return pd.testing.assert_frame_equal(test, expected)
+
+def test_groupby_apply_df_agg_list(df):
+    test = (
+        df
+        .groupby("y")
+        .agg([S.min(), S.max(), S.max() - S.min()])
+    )
+    expected = pd.DataFrame(
+        {
+            ('x', 'S.min()'): [0, 1],
+            ('x', 'S.max()'): [4, 3],
+            ('x', 'S.max() - S.min()'): [4, 2],
+        },
+        index=pd.Index(['a', 'b'], name='y'),
+    )
+    return pd.testing.assert_frame_equal(test, expected)
+
+def test_groupby_apply_df_agg_dict(df):
+    test = (
+        df
+        .groupby("y")
+        .agg({
+            'x': [S.min(), S.max(), S.max() - S.min()],
+        })
+    )
+    expected = pd.DataFrame(
+        {
+            ('x', 'S.min()'): [0, 1],
+            ('x', 'S.max()'): [4, 3],
+            ('x', 'S.max() - S.min()'): [4, 2],
         },
         index=pd.Index(['a', 'b'], name='y'),
     )
