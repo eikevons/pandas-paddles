@@ -1,3 +1,4 @@
+"""Helpers for working with :meth:`pandas.DataFrame.pipe()`."""
 import pandas as pd
 
 from .contexts import DataframeContext

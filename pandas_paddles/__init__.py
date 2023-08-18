@@ -27,96 +27,116 @@ operations much more concisely. See `Comparison`_ below.
 DataFrame examples
 ~~~~~~~~~~~~~~~~~~
 
-Filter rows with :attr:`~pandas.DataFrame.loc`:
+See full documentation at :class:`~pandas_paddles.contexts.DataframeContext`.
 
->>> from pandas_paddles import DF
->>> df = pd.DataFrame({"x": range(9), "y": 3 * ["a", "B", "c"]})
->>> df.loc[DF["x"] < 3]
-   x  y
-0  0  a
-1  1  B
-2  2  c
+Filter rows with :attr:`~pandas.DataFrame.loc`::
 
-Access nested column attributes:
+    from pandas_paddles import DF
+    df = pd.DataFrame({"x": range(9), "y": 3 * ["a", "B", "c"]})
+    df.loc[DF["x"] < 3]
+    # Out:
+    #    x  y
+    # 0  0  a
+    # 1  1  B
+    # 2  2  c
 
->>> df.loc[DF["y"].str.islower()]
-   x  y
-0  0  a
-2  2  c
-3  3  a
-5  5  c
-6  6  a
-8  8  c
+Access nested column attributes::
 
-Combine filter predicates:
+    df.loc[DF["y"].str.islower()]
+    #    x  y
+    # 0  0  a
+    # 2  2  c
+    # 3  3  a
+    # 5  5  c
+    # 6  6  a
+    # 8  8  c
 
->>> df.loc[DF["y"].str.islower() & (df.x < 3)]
-   x  y
-0  0  a
-2  2  c
+Combine filter predicates::
 
-Create new columns:
+    df.loc[DF["y"].str.islower() & (df.x < 3)]
+    # Out:
+    #    x  y
+    # 0  0  a
+    # 2  2  c
 
->>> df.assign(z = DF["x"] * DF["y"])
-   x  y         z
-0  0  a
-1  1  B         B
-2  2  c        cc
-3  3  a       aaa
-4  4  B      BBBB
-5  5  c     ccccc
-6  6  a    aaaaaa
-7  7  B   BBBBBBB
-8  8  c  cccccccc
+Create new columns::
 
-Chain operations:
+    df.assign(z = DF["x"] * DF["y"])
+    # Out:
+    #    x  y         z
+    # 0  0  a
+    # 1  1  B         B
+    # 2  2  c        cc
+    # 3  3  a       aaa
+    # 4  4  B      BBBB
+    # 5  5  c     ccccc
+    # 6  6  a    aaaaaa
+    # 7  7  B   BBBBBBB
+    # 8  8  c  cccccccc
 
->>> (df
-...  .assign(z = DF["x"] * DF["y"])
-...  .loc[DF["z"].str.len() > 3]
-... )
-   x  y         z
-3  3  a       aaa
-4  4  B      BBBB
-5  5  c     ccccc
-6  6  a    aaaaaa
-7  7  B   BBBBBBB
-8  8  c  cccccccc
+Chain operations::
 
-You can also use ``DF`` in function arguments:
+    (df
+     .assign(z = DF["x"] * DF["y"])
+     .loc[DF["z"].str.len() > 3]
+    )
+    # Out:
+    #    x  y         z
+    # 3  3  a       aaa
+    # 4  4  B      BBBB
+    # 5  5  c     ccccc
+    # 6  6  a    aaaaaa
+    # 7  7  B   BBBBBBB
+    # 8  8  c  cccccccc
 
->>> df = pd.DataFrame({"x": range(6), "y": 2 * [1,2,3]})
->>> df.assign(x2 = DF["x"].clip(DF["y"].min(), DF["y"].max()))
-   x  y  x2
-0  0  1   1
-1  1  2   1
-2  2  3   2
-3  3  1   3
-4  4  2   3
-5  5  3   3
+You can also use ``DF`` in function arguments::
 
- or with keyword arguments:
+    df = pd.DataFrame({"x": range(6), "y": 2 * [1,2,3]})
+    df.assign(x2 = DF["x"].clip(DF["y"].min(), DF["y"].max()))
+    # Out:
+    #    x  y  x2
+    # 0  0  1   1
+    # 1  1  2   1
+    # 2  2  3   2
+    # 3  3  1   3
+    # 4  4  2   3
+    # 5  5  3   3
 
->>> DF.assign(x2 = DF["x"].clip(lower=DF["y"].min(), upper=DF["y"].max()))
-# ...
+or with keyword arguments::
+
+    df.assign(x2 = DF["x"].clip(lower=DF["y"].min(), upper=DF["y"].max()))
+    # ...
 
 Series examples
 ~~~~~~~~~~~~~~~
 
-Select subset of series matching predicate:
+See full documentation at :class:`~pandas_paddles.contexts.SeriesContext`.
 
->>> from pandas_paddles import S
->>> s = pd.Series(range(10))
->>> s[S < 3]
-0    0
-1    1
-2    2
-dtype: int64
->>> s[(S > 2) & (S.mod(2) == 0)]
-4    4
-6    6
-8    8
-dtype: int64
+Select subset of series matching predicate::
+
+    from pandas_paddles import S
+    s = pd.Series(range(10))
+    s[S < 3]
+    # Out:
+    # 0    0
+    # 1    1
+    # 2    2
+    # dtype: int64
+    s[(S > 2) & (S.mod(2) == 0)]
+    # Out:
+    # 4    4
+    # 6    6
+    # 8    8
+    # dtype: int64
+
+``S`` can also be used in aggregations, e.g.::
+
+    df.groupby("Y")["x"].agg([S.max() - S.min() * 2])
+    # y
+    # B    5
+    # a    6
+    # c    4
+    # Name: x, dtype: int64
 
 Column or index selection
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -130,62 +150,71 @@ index-wise selection.)
 
 .. note::
     Except for `C.dtype`, the examples below work in a similar manner when
-    selecting by index by replacing ``C`` with ``I``, e.g.
+    selecting by index by replacing ``C`` with ``I``, e.g.::
 
-    >>> df.loc[I["a", "b"] | ...]
+        df.loc[I["a", "b"] | ...]
 
 Move some columns to the left of the data frame. ``...`` is used to include
 all other columns at the end and the typical logical operators ``&``, ``|``
-(or ``+``), and ``~`` to compose selections:
+(or ``+``), and ``~`` to compose selections::
 
->>> from pandas_paddles import C
->>> df = pd.DataFrame({"x": 1, "y": 3.14, "z": "abc", "u": 42}, index=[0])
->>> df.loc[:, C["y", "u"] | ...]
-      y   u  x    z
-0  3.14  42  1  abc
+    from pandas_paddles import C
+    df = pd.DataFrame({"x": 1, "y": 3.14, "z": "abc", "u": 42}, index=[0])
+    df.loc[:, C["y", "u"] | ...]
+    # Out:
+    #       y   u  x    z
+    # 0  3.14  42  1  abc
 
-Select slices of columns:
+Select slices of columns::
 
->>> df.loc[:, C["y":"z"] | ...]
-      y    z  x   u
-0  3.14  abc  1  42
+    df.loc[:, C["y":"z"] | ...]
+    # Out:
+    #       y    z  x   u
+    # 0  3.14  abc  1  42
 
-Select by "simple" dtype:
+Select by "simple" dtype::
 
->>> df.loc[:, C.dtype == int]
-   x   u
-0  1  42
+    df.loc[:, C.dtype == int]
+    # Out:
+    #    x   u
+    # 0  1  42
 
-Select by "complex" dtype:
+Select by "complex" dtype::
 
->>> df.loc[:, C.dtype == str]
-     z
-0  abc
+    df.loc[:, C.dtype == str]
+    # Out:
+    #      z
+    # 0  abc
 
-Select by multiple dtypes:
+Select by multiple dtypes::
 
->>> df.loc[:, C.dtype.isin((int, float))]
-   x     y   u
-0  1  3.14  42
+    df.loc[:, C.dtype.isin((int, float))]
+    # Out:
+    #    x     y   u
+    # 0  1  3.14  42
 
-Select by multi-index level:
+Select by multi-index level::
 
->>> midf = pd.DataFrame.from_records(
-... data=[range(9)],
-... index=[0],
-... columns=pd.MultiIndex.from_product([["a", "b", "c"], ["x", "y", "z"]], names=["one", "two"]))
->>> midf
-one  a        b        c      
-two  x  y  z  x  y  z  x  y  z
-0    0  1  2  3  4  5  6  7  8
->>> midf.loc[:, C.levels[0]["b", "c"] | ...]
-one  b        c        a      
-two  x  y  z  x  y  z  x  y  z
-0    3  4  5  6  7  8  0  1  2
->>>  midf.loc[:, (C.levels[0]["b", "c"] | ...) & C.levels[1]["z"]]
-one  b  c  a
-two  z  z  z
-0    5  8  2
+    midf = pd.DataFrame.from_records(
+        data=[range(9)],
+        index=[0],
+        columns=pd.MultiIndex.from_product([["a", "b", "c"], ["x", "y", "z"]], names=["one", "two"]),
+    )
+    midf
+    # Out:
+    # one  a        b        c      
+    # two  x  y  z  x  y  z  x  y  z
+    # 0    0  1  2  3  4  5  6  7  8
+    midf.loc[:, C.levels[0]["b", "c"] | ...]
+    # Out:
+    # one  b        c        a      
+    # two  x  y  z  x  y  z  x  y  z
+    # 0    3  4  5  6  7  8  0  1  2
+    midf.loc[:, (C.levels[0]["b", "c"] | ...) & C.levels[1]["z"]]
+    # Out:
+    # one  b  c  a
+    # two  z  z  z
+    # 0    5  8  2
 
 .. warning::
     Selecting slices of a multi-index level might not work as expected
