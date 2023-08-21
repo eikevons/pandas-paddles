@@ -10,7 +10,7 @@ def df():
         "y": list("ababa"),
         })
 
-def test_groupby_apply_column_agg_simple(df):
+def test_groupby_column_agg_simple(df):
     test = (df
             .groupby("y")
             ["x"]
@@ -23,7 +23,7 @@ def test_groupby_apply_column_agg_simple(df):
     )
     return pd.testing.assert_series_equal(test, expected)
 
-def test_groupby_apply_column_agg_composed(df):
+def test_groupby_column_agg_composed(df):
     test = (df
             .groupby("y")
             ["x"]
@@ -36,7 +36,7 @@ def test_groupby_apply_column_agg_composed(df):
     )
     return pd.testing.assert_series_equal(test, expected)
 
-def test_groupby_apply_column_agg_list(df):
+def test_groupby_column_agg_list(df):
     test = (df
             .groupby("y")
             ["x"]
@@ -52,7 +52,7 @@ def test_groupby_apply_column_agg_list(df):
     )
     return pd.testing.assert_frame_equal(test, expected)
 
-def test_groupby_apply_df_agg_list(df):
+def test_groupby_df_agg_list(df):
     test = (
         df
         .groupby("y")
@@ -68,7 +68,7 @@ def test_groupby_apply_df_agg_list(df):
     )
     return pd.testing.assert_frame_equal(test, expected)
 
-def test_groupby_apply_df_agg_dict(df):
+def test_groupby_df_agg_dict(df):
     test = (
         df
         .groupby("y")
