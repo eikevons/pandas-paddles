@@ -285,7 +285,8 @@ class SeriesContext(ClosureFactoryBase):
 
     This is useful in combination with :attr:`~pandas.Series.loc`,
     :attr:`~pandas.Series.iloc`, and other methods that accept callables
-    taking the series to act on as argument, e.g., group-by 
+    taking the series to act on as argument, e.g., `.agg()` after a
+    group-by.
 
     Examples
     --------
@@ -294,12 +295,13 @@ class SeriesContext(ClosureFactoryBase):
         from pandas_paddles import S
         s = pd.Series(range(10))
         s[S <= 2]
+        # Out:
         # 0    0
         # 1    1
         # 2    2
         # dtype: int64
 
-    Aggregating a single ``groupby``ded column with
+    Aggregating a single ``groupby``ed column with
     ``groupby(...)[col].agg()``::
 
         df = pd.DataFrame({
