@@ -134,6 +134,12 @@ class ClosureFactoryBase:
         # return "".join(str(l) for l in self._closures)
         return str(self.as_tree().pprint())
 
+    # GH-21: Needed to use S in groupby(...)[col].agg([S. ...])
+    @property
+    def __name__(self) -> str:
+        lines = str(self).splitlines()
+        return ' '.join(l.strip() for l in lines)
+
     def __getattr__(self, name: str) -> "ClosureFactoryBase":
         return type(self)(self._closures + (AttributeClosure(name),))
 
@@ -222,16 +228,24 @@ class DataframeContext(ClosureFactoryBase):
     Examples
     --------
     Usage with :attr:`~pandas.DataFrame.loc` or
-    :attr:`pandas.Dataframe.iloc`:
+    :attr:`~pandas.DataFrame.iloc`::
 
-    >>> DF = DataframeAccessor()
-    >>> df = pd.DataFrame({"x": [1, 2, 3, 4]})
-    >>> df.loc[DF["x"] <= 2]
+        df = pd.DataFrame({"x": [1, 2, 3, 4]})
+        df.loc[DF["x"] <= 2]
+        # Out:
+        #    x
+        # 0  1
+        # 1  2
 
-    Usage with :meth:`~pandas.DataFrame.assign()`:
+    Usage with :meth:`~pandas.DataFrame.assign()`::
 
-    >>> df.assign(y = DF["x"] * 2)
-    >>> df
+        df.assign(y = DF["x"] * 2)
+        # Out:
+        #    x  y
+        # 0  1  2
+        # 1  2  4
+        # 2  3  6
+        # 3  4  8
     """
     wrapped_cls = pd.DataFrame
     wrapped_s = "DF"
@@ -270,16 +284,84 @@ class SeriesContext(ClosureFactoryBase):
     series of the context.
 
     This is useful in combination with :attr:`~pandas.Series.loc`,
-    :attr:`~pandas.Series.iloc` and other methods that accept callables
-    taking the series to act on as argument.
+    :attr:`~pandas.Series.iloc`, and other methods that accept callables
+    taking the series to act on as argument, e.g., `.agg()` after a
+    group-by.
 
     Examples
     --------
-    Usage with ``[]``, ``loc`` or ``iloc``:
+    Usage with ``[]``, ``.loc[]`` or ``.iloc[]``::
 
-    >>> S = SeriesAccessor()
-    >>> s = pd.Series(range(10))
-    >>> s[S <= 2]
+        from pandas_paddles import S
+        s = pd.Series(range(10))
+        s[S <= 2]
+        # Out:
+        # 0    0
+        # 1    1
+        # 2    2
+        # dtype: int64
+
+    Aggregating a single ``groupby``ed column with
+    ``groupby(...)[col].agg()``::
+
+        df = pd.DataFrame({
+            "x": [1, 2, 3, 4],
+            "y": ["a", "b", "b", "a"],
+            "z": [0.1, 0.5, 0.6, 0.9],
+        })
+        df.groupby("y")["x"].agg(S.max() - S.min())
+        # Out:
+        # y
+        # a    3
+        # b    1
+        # Name: x, dtype: int64
+    
+    Appying multiple aggregations to a single column::
+
+        df.groupby("y")["x"].agg([
+            S.max() - S.min(),
+            S.mean(),
+        ])
+        # Out:
+        #    S.max() - S.min()  S.min()
+        # y                            
+        # a                  3        1
+        # b                  1        2
+
+    Aggregating multiple columns (**Note:** You must wrap the
+    ``S``-expressions in a ``list`` even when using only one expression!)::
+
+        df.groupby("y").agg([S.min()])
+        # Out:
+        #         x       z
+        #   S.min() S.min()
+        # y                
+        # a       1     0.1
+        # b       2     0.5
+
+    Multiple ``S``-expressions work the same::
+
+        df.groupby("y").agg([S.min(), S.mean()])
+        # Out:
+        #         x                z         
+        #   S.min() S.mean() S.min() S.mean()
+        # y                                  
+        # a       1      2.5     0.1     0.50
+        # b       2      2.5     0.5     0.55
+    
+    ``S``-expressions can alsoe be passed in a ``dict`` argument to
+    ``.agg()`` (Again, they always need to be wrapped in a ``list``!)::
+
+        df.groupby("y").agg({
+            "x": [S.min(), S.mean()],
+            "z": [S.max(), S.max() - S.min()],
+        })
+        # Out:
+        #         x                z                  
+        #   S.min() S.mean() S.max() S.max() - S.min()
+        # y                                           
+        # a       1      2.5     0.9               0.8
+        # b       2      2.5     0.6               0.1
     """
     wrapped_cls = pd.Series
     wrapped_s = "S"

@@ -1,5 +1,7 @@
 # Unreleases (YYYY-MM-DD)
 
+- Fix using `S` in `groupby().agg()`
+  ([GH-21](https://github.com/eikevons/pandas-paddles/issues/21))
 - ...
 
 # 1.4.0 (2023-08-16)
