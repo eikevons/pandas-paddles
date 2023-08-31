@@ -13,7 +13,6 @@ binary_ops = (
         "add",
         "and",
         "contains",
-        "div",
         "divmod",
         "eq",
         "floordiv",
