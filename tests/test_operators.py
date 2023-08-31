@@ -6,9 +6,11 @@ from pandas_paddles import DF, S
 
 @pytest.fixture
 def df():
-    return pd.DataFrame(
-        {"x": [1, 2, 3, 4, 5], "y": list("abcde"), "z": [1, 2, 1, 2, 1]}
-    )
+    return pd.DataFrame({
+        "x": [1, 2, 3, 4, 5],
+        "y": list("abcde"),
+        "z": [1, 2, 1, 2, 1],
+    })
 
 
 @pytest.fixture
@@ -52,6 +54,23 @@ def test_df_comparison(df, code, expected):
         ("DF.x / DF.z", [1, 1, 3, 2, 5]),
         ("DF.z // DF.x", [1, 1, 0, 0, 0]),
         ("DF.x ** DF.z", [1, 4, 3, 16, 5]),
+        ("DF.z % DF.x", [0, 0, 1, 2, 1]),
+        # Operators with constants
+        ("DF.x + 1", [2, 3, 4, 5, 6]),
+        ("DF.x - 1", [0, 1, 2, 3, 4]),
+        ("DF.x * 2", [2, 4, 6, 8, 10]),
+        ("DF.x / 2", [0.5, 1.0, 1.5, 2.0, 2.5]),
+        ("DF.x // 2", [0, 1, 1, 2, 2]),
+        ("DF.x ** 2", [1, 4, 9, 16, 25]),
+        ("DF.x % 3", [1, 2, 0, 1, 2]),
+        # Reverse operators with constants
+        ("1 + DF.x", [2, 3, 4, 5, 6]),
+        ("1 - DF.x", [0, -1, -2, -3, -4]),
+        ("2 * DF.x", [2, 4, 6, 8, 10]),
+        ("15 / DF.x", [15, 7.5, 5, 3.75, 3]),
+        ("15 // DF.x", [15, 7, 5, 3, 3]),
+        ("2 ** DF.x", [2, 4, 8, 16, 32]),
+        ("3 % DF.x", [0, 1, 0, 3, 3]),
     ],
 )
 def test_df_arithmetic(df, code, expected):

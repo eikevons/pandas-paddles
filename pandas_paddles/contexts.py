@@ -6,30 +6,7 @@ import pandas as pd
 
 from .closures import ClosureBase, AttributeClosure, ItemClosure, MethodClosure
 from .util import AstNode
-
-_binary_dunders = {
-    "__and__": "&",
-    "__eq__": "==",
-    "__neq__": "!=",
-    "__neq__": "!=",
-    "__or__": "|",
-    "__add__": "+",
-    "__mul__": "*",
-    "__sub__": "-",
-    "__div__": "/",
-    "__truediv__": "//",
-    "__xor__": "^",
-    "__lt__": "<",
-    "__le__": "<=",
-    "__gt__": ">",
-    "__ge__": ">=",
-}
-
-_unary_dunders = {
-    "__invert__": "~",
-    "__neg__": "-",
-    "__pos__": "+",
-}
+from . import operator_helpers
 
 
 def _add_dunder_operators(cls):
@@ -41,52 +18,35 @@ def _add_dunder_operators(cls):
         This need to be applied on the concrete classes not the base class
         to allow copying of docstrings.
     """
-    for op in [
-        "__abs__",
-        "__add__",
-        "__and__",
-        "__bool__",
-        "__contains__",
-        "__div__",
-        "__divmod__",
-        "__eq__",
-        "__floordiv__",
-        "__ge__",
-        "__gt__",
-        "__invert__",
-        "__le__",
-        "__lt__",
-        "__mul__",
-        "__ne__",
-        "__neg__",
-        "__not__",
-        "__or__",
-        "__pos__",
-        "__pow__",
-        "__sub__",
-        "__truediv__",
-        "__xor__",
-        ]:
-        # Fix the closure of `op_wrap` to the current value of `op`. Without
-        # `fix_closure()` all created methods point to the last `op` value.
-        def fix_closure(op):
-            def op_wrap(self, *args, **kwargs):
-                return self._operator_proxy(op)(*args, **kwargs)
-            # Update method metadata to improve usablility
-            op_wrap.__name__ = op
-            orig_doc = None
-            orig_annot = None
-            for pd_cls in {pd.Series} | {cls.wrapped_cls}:
-                if hasattr(pd_cls, op):
-                    a = getattr(pd_cls, op)
-                    if not a.__doc__:
-                        continue
-                    op_wrap.__doc__ = a.__doc__
-                    op_wrap.__annotations__ = a.__annotations__
-                    break
+    # Fix the closure of `op_wrap` to the current value of `op`. Without
+    # `fix_closure()` all created methods point to the last `op` value.
+    def fix_closure(op):
+        def op_wrap(self, *args, **kwargs):
+            return self._operator_proxy(op)(*args, **kwargs)
+        # Update method metadata to improve usablility
+        op_wrap.__name__ = op
+        orig_doc = None
+        orig_annot = None
+        for pd_cls in {pd.Series} | {cls.wrapped_cls}:
+            if hasattr(pd_cls, op):
+                a = getattr(pd_cls, op)
+                if not a.__doc__:
+                    continue
+                op_wrap.__doc__ = a.__doc__
+                op_wrap.__annotations__ = a.__annotations__
+                break
 
-            return op_wrap
-        setattr(cls, op, fix_closure(op))
+        return op_wrap
+
+    for op in operator_helpers.unary_ops:
+        lop = f"__{op}__"
+        setattr(cls, lop, fix_closure(lop))
+
+    for op in operator_helpers.binary_ops:
+        lop = f"__{op}__"
+        rop = f"__r{op}__"
+        setattr(cls, lop, fix_closure(lop))
+        setattr(cls, rop, fix_closure(rop))
     return cls
 
 
@@ -180,16 +140,15 @@ class ClosureFactoryBase:
                 cur.right = new
                 cur = new
             elif isinstance(c, MethodClosure):
-                if c.name in _binary_dunders and len(c.args) == 1 and not c.kwargs:
-                    op = _binary_dunders[c.name]
+                op_type, op = operator_helpers.get_op_syntax(c.name)
+                if op_type == "binary" and len(c.args) == 1 and not c.kwargs:
                     right = to_node(c.args[0])
                     cur_root = cur.root
                     new = AstNode(op, left=cur_root, right=right)
                     new.left.parent = new
                     new.right.parent = new
                     cur = new
-                elif c.name in _unary_dunders and not c.args and not c.kwargs:
-                    op = _unary_dunders[c.name]
+                elif op_type == "unary" and not c.args and not c.kwargs:
                     right = cur.root
                     new = AstNode((op,), right=right)
                     right.parent = new
