@@ -1,5 +1,6 @@
 """Factories for closures wrapping dataframe and series context."""
 
+from itertools import chain
 from typing import Any, Callable, ClassVar, Dict, Iterable, Optional, Union, Tuple, Type
 
 import pandas as pd
@@ -38,7 +39,7 @@ def _add_dunder_operators(cls):
 
         return op_wrap
 
-    for op in operator_helpers.unary_ops:
+    for op in chain(operator_helpers.unary_ops, operator_helpers.binary_ops_non_reversable):
         lop = f"__{op}__"
         setattr(cls, lop, fix_closure(lop))
 
@@ -142,9 +143,12 @@ class ClosureFactoryBase:
             elif isinstance(c, MethodClosure):
                 op_type, op = operator_helpers.get_op_syntax(c.name)
                 if op_type == "binary" and len(c.args) == 1 and not c.kwargs:
-                    right = to_node(c.args[0])
-                    cur_root = cur.root
-                    new = AstNode(op, left=cur_root, right=right)
+                    new = AstNode(op, left=cur.root, right=to_node(c.args[0]))
+                    new.left.parent = new
+                    new.right.parent = new
+                    cur = new
+                elif op_type == "reverse-binary" and len(c.args) == 1 and not c.kwargs:
+                    new = AstNode(op, left=to_node(c.args[0]), right=cur.root)
                     new.left.parent = new
                     new.right.parent = new
                     cur = new
