@@ -1,7 +1,10 @@
 # Unreleases (YYYY-MM-DD)
 
-- Add reverse binary operators, e.g. `__radd__`.
 - ...
+
+# 1.4.2 (2023-09-01)
+
+- Add reverse binary operators, e.g. `__radd__`.
 
 # 1.4.1 (2023-08-25)
 
