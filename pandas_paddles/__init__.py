@@ -256,7 +256,7 @@ code::
 
 Author: Eike von Seggern <eike@vonseggern.space>
 """
-__version__ = "1.4.2"
+__version__ = "1.5.0-dev"
 __all__ = ["C", "DF", "I", "S", "report"]
 
 from .contexts import DataframeContext, SeriesContext

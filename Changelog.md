@@ -1,4 +1,4 @@
-# Unreleases (YYYY-MM-DD)
+# Unreleased (YYYY-MM-DD)
 
 - ...
 
