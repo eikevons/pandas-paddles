@@ -1,3 +1,5 @@
+"""Helpers to wrap operator methods."""
+
 
 unary_ops = (
         "abs",
