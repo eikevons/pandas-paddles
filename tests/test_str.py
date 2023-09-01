@@ -1,98 +1,86 @@
 from pandas_paddles import DF, S
+import pytest
 
 def j(*s):
     return "\n".join(s)
 
 
-# DataFrame accessor formatting
-def test_attribute_str():
-    assert "DF.a" == str(DF.a)
+_cases = [
+    # expression, expected str
+    (DF.a, "DF.a"),
+    (DF.a.BB, j("DF.a",
+                "  .BB")),
+    (DF["a"], "DF['a']"),
+    (DF["a"]["BB"], j("DF['a']",
+                      "  ['BB']")),
+    (DF.a["BB"], j("DF.a",
+                   "  ['BB']")),
+    (DF["a"].BB, j("DF['a']",
+                   "  .BB")),
+    (DF.x < 9, j("  DF.x",
+                 "<",
+                 "  9")),
+    # Python is internally converting to __gt__ because of __lt__ returning
+    # NotImplemented
+    (9 < DF.x, j("  DF.x",
+                 ">",
+                 "  9")),
+    (DF.x + 1, j("  DF.x",
+                 "+",
+                 "  1")),
+    (1 + DF.x, j("  1",
+                 "+",
+                 "  DF.x")),
 
-def test_two_attributes_str():
-    assert j("DF.a",
-             "  .BB") == str(DF.a.BB)
+    (DF.x.abs(), j("DF.x",
+                   "  .abs()")),
+    (DF.x.isin({1, 2}), j("DF.x",
+                          "  .isin(",
+                          "    {1, 2},",
+                          "  )")),
+    (DF.x.clip(1, 2), j("DF.x",
+                        "  .clip(",
+                        "    1,",
+                        "    2,",
+                        "  )")),
 
-def test_item_str():
-    assert "DF['a']" == str(DF["a"])
+    (DF.x.clip(1, upper=2), j("DF.x",
+                              "  .clip(",
+                              "    1,",
+                              "    upper=2,",
+                              "  )")),
+   (DF.x.method_name(DF.y.min()),
+    j("DF.x",
+      "  .method_name(",
+      "    DF.y",
+      "      .min(),",
+      "  )")),
+    (~DF["x"], "~DF['x']"),
+    (-DF["x"], "-DF['x']"),
 
-def test_two_items_str():
-    assert j("DF['a']",
-             "  ['BB']") == str(DF["a"]["BB"])
+    # Series accessor formatting
+    (S < 8, j("  S",
+              "<",
+              "  8")),
+    (S.index, "S.index"),
+    (S.abs(), "S.abs()"),
+    (abs(S), "S.__abs__()"),
+    (S.isin({3, 4}), j("S.isin(",
+                       "   {3, 4},",
+                       " )")),
+    (S.meth_name(3, 'a'), j("S.meth_name(",
+                            "   3,",
+                            "   'a',",
+                            " )")),
+    (S.clip(lower=1), j("S.clip(",
+                        "   lower=1,",
+                        " )")),
 
-def test_attribute_item_str():
-    assert j("DF.a",
-             "  ['BB']") == str(DF.a["BB"])
-
-def test_item_attribute_str():
-    assert j("DF['a']",
-             "  .BB") == str(DF["a"].BB)
-
-def test_operator_str():
-    assert j("  DF.x",
-             "<",
-             "  9") == str(DF.x < 9)
-
-def test_column_method_no_args_str():
-    assert j("DF.x",
-             "  .abs()") == str(DF.x.abs())
-
-def test_column_method_with_arg_str():
-    assert j("DF.x",
-             "  .isin(",
-             "    {1, 2},",
-             "  )") == str(DF.x.isin({1, 2}))
-
-def test_column_method_with_args_str():
-    assert j("DF.x",
-             "  .clip(",
-             "    1,",
-             "    2,",
-             "  )") == str(DF.x.clip(1, 2))
-
-def test_column_method_with_arg_kwarg_str():
-    assert j("DF.x",
-             "  .clip(",
-             "    1,",
-             "    upper=2,",
-             "  )") == str(DF.x.clip(1, upper=2))
-
-def test_method_with_nested_args_str():
-    assert j("DF.x",
-             "  .method_name(",
-             "    DF.y",
-             "      .min(),",
-             "  )") == str(DF.x.method_name(DF.y.min()))
-
-# Series accessor formatting
-def test_series_operator_str():
-    assert j("  S",
-             "<",
-             "  8") == str(S < 8)
-
-def test_series_attribute_str():
-    assert "S.index" == str(S.index)
-
-def test_series_method_no_args_str():
-    assert "S.abs()" == str(S.abs())
-
-def test_series_method_with_arg_str():
-    assert j("S.isin(",
-             "   {3, 4},",
-             " )") == str(S.isin({3, 4}))
-
-def test_series_method_with_args_str():
-    assert j("S.meth_name(",
-             "   3,",
-             "   'a',",
-             " )") == str(S.meth_name(3, 'a'))
-
-def test_series_method_with_kwarg_str():
-    assert j("S.clip(",
-             "   lower=1,",
-             " )") == str(S.clip(lower=1))
-
-def test_series_method_with_arg_kwarg_str():
-    assert j("S.clip(",
-             "   1,",
-             "   upper=2,",
-             " )") == str(S.clip(1, upper=2))
+    (S.clip(1, upper=2), j("S.clip(",
+                           "   1,",
+                           "   upper=2,",
+                           " )")),
+]
+@pytest.mark.parametrize('expression,expected_str', _cases)
+def test_str(expression, expected_str):
+    assert expected_str == str(expression)
