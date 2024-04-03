@@ -260,10 +260,10 @@ __version__ = "1.5.0-dev"
 __all__ = ["C", "DF", "I", "S", "report"]
 
 from .contexts import DataframeContext, SeriesContext
-from .axis import ColumnSelectionComposer, SelectionComposerBase
+from .axis import ColumnSelectionComposer, IndexSelectionComposer
 from .pipe import report
 
-C = ColumnSelectionComposer("columns")
+C = ColumnSelectionComposer()
 DF = DataframeContext()
-I = SelectionComposerBase("index")
+I = IndexSelectionComposer()
 S = SeriesContext()

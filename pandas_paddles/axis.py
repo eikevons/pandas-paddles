@@ -216,7 +216,7 @@ class BinaryOp(BaseOp):
 
     Used to implement, e.g.::
 
-        >>> sel_1 | sel_2
+        sel_1 | sel_2
     """
     def __init__(self, left: BaseOp, right: BaseOp, op: Callable[[Any, Any], Any]):
         self.left = left
@@ -239,7 +239,7 @@ class UnaryOp(BaseOp):
 
     Used to implement, e.g., negation::
 
-        >>> ~sel
+        ~sel
     """
     def __init__(self, wrapped: BaseOp, op: Callable[[Any], Any]):
         self.wrapped = wrapped
@@ -289,7 +289,7 @@ class DtypesOp:
 
 # Objects to create, compose, and evaluate column selection operators
 class OpComposerBase:
-    """Base-class for composing column selection operations.
+    """Base-class for composing column/row selection operations.
 
     This class wraps around the actual operation and overloads the relevant
     operators (``+``, ``&``, ``|``, and ``~``) and defers the evaluation of
@@ -486,6 +486,12 @@ class SelectionComposerBase(LabelComposer):
         return attr
 
 
+class IndexSelectionComposer(SelectionComposerBase):
+    """Compose callable to select or sort index."""
+    def __init__(self, op=None):
+        super().__init__("index", op)
+
+
 class ColumnSelectionComposer(SelectionComposerBase):
     """Compose callable to select or sort columns.
 
@@ -544,8 +550,8 @@ class ColumnSelectionComposer(SelectionComposerBase):
 
         ~(C.levels[0]["b"] | C.levels[1]["X", "Y"])
     """
-    def __init__(self, axis, op=None, sample_size=None):
-        super().__init__(axis, op=op)
+    def __init__(self, op=None, sample_size=None):
+        super().__init__("columns", op=op)
         self.dtype = DtypeComposer(self.axis)
         if sample_size is not None:
             self.sample_size = sample_size
