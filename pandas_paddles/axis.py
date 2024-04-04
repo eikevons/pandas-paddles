@@ -104,6 +104,9 @@ class BaseOp:
         """Evaluate operator on data frame from context."""
         raise NotImplementedError("Must be implemented in sub-class.")
 
+    def _pprint(self, axis: Literal["columns", "index"]) -> str:
+        return f"{axis}{self}"
+
 
 class LabelSelectionOp(BaseOp):
     """Explicitely select labels."""
@@ -227,6 +230,15 @@ class BinaryOp(BaseOp):
         op_name = getattr(self.op, '__name__', str(self.op))
         return f'({self.left}) {op_name} ({self.right})'
 
+    def _pprint(self, axis: str) -> str:
+        op_name = getattr(self.op, '__name__', str(self.op))
+        op_name = {
+            "and_": "&",
+            "or_": "|",
+        }.get(op_name, op_name)
+        return f"{self.left._pprint(axis)} {op_name} {self.right._pprint(axis)}"
+
+
     def __call__(self, axis, df: pd.DataFrame) -> Selection:
         sel_left = self.left(axis, df)
         sel_right = self.right(axis, df)
@@ -249,23 +261,35 @@ class UnaryOp(BaseOp):
         op_name = getattr(self.op, '__name__', str(self.op))
         return f'{op_name}({self.wrapped})'
 
+    def _pprint(self, axis: str) -> str:
+        op_name = getattr(self.op, '__name__', str(self.op))
+        op_name, left, right = {
+            "invert": ("~", "", ""),
+        }.get(op_name, (op_name, "(", ")"))
+        return f"{op_name}{left}{self.wrapped._pprint(axis)}{right}"
+
     def __call__(self, axis, df: pd.DataFrame) -> Selection:
         sel = self.wrapped(axis, df)
 
         return self.op(sel)
 
 
-class DtypesOp:
+class DtypesOp(BaseOp):
     """Select columns by dtype."""
     def __init__(self, dtypes: Sequence, sample_size:int=10):
         self.dtypes = dtypes
         self.sample_size = sample_size
 
     def __str__(self):
-        dtypes = self.dtypes
+        dtypes = [
+            getattr(t, "__name__", str(t))
+            for t in self.dtypes
+        ]
+
         if len(dtypes) == 1:
-            return f'dtype == {dtypes[0]}'
-        return f'dtype in {dtypes}'
+            return f'.dtype == {dtypes[0]}'
+
+        return f'.dtype in {{{", ".join(dtypes)}}}'
 
     def __call__(self, axis, df):
         if axis != "columns":
@@ -300,7 +324,8 @@ class OpComposerBase:
         self.op = op or Selection()
 
     def __str__(self):
-        return f'<{self.axis}: {self.op}>'
+        return self.op._pprint(self.axis[0].upper())
+        # return f'<{self.axis}: {self.op._pprint(self.axis)}>'
 
     def get_other_op(self, other):
         """Get/create a wrapped operation for composing operations."""
