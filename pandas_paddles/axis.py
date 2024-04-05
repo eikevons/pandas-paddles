@@ -5,7 +5,6 @@ try:
     from typing import Literal
 except ImportError:
     from typing_extensions import Literal
-from warnings import warn
 
 import numpy as np
 import pandas as pd
@@ -156,13 +155,13 @@ class LabelSelectionOp(BaseOp):
 
     def __str__(self):
         if isinstance(self.labels, slice):
-            fmt = lambda o, default: repr(o) if o else default
+            fmt = lambda o, default: repr(o) if o is not None else default
             items = [fmt(self.labels.start, ''), fmt(self.labels.stop, '')]
             if self.labels.step:
                 items.append(repr(self.labels.step))
             pp_labels = ':'.join(items)
         else:
-            pp_labels = ', '.join(str(l) for l in self.labels)
+            pp_labels = ', '.join(repr(l) for l in self.labels)
 
         if self.level:
             return f'(level={self.level})[{pp_labels}]'
@@ -266,6 +265,10 @@ class UnaryOp(BaseOp):
         op_name, left, right = {
             "invert": ("~", "", ""),
         }.get(op_name, (op_name, "(", ")"))
+        # If we wrap a binary operator, add parentheses around it
+        if isinstance(self.wrapped, BinaryOp):
+            left = "("
+            right = ")"
         return f"{op_name}{left}{self.wrapped._pprint(axis)}{right}"
 
     def __call__(self, axis, df: pd.DataFrame) -> Selection:
@@ -289,7 +292,7 @@ class DtypesOp(BaseOp):
         if len(dtypes) == 1:
             return f'.dtype == {dtypes[0]}'
 
-        return f'.dtype in {{{", ".join(dtypes)}}}'
+        return f'.dtype.isin({{{", ".join(dtypes)}}})'
 
     def __call__(self, axis, df):
         if axis != "columns":
@@ -449,13 +452,18 @@ class DtypeComposer:
 
 
 class SelectionComposerBase(LabelComposer):
-    """Compose callable to select or sort axis labels (index and columns).
+    """Base class to compose callable to select or sort axis labels (index and columns)."""
+    def __init__(self, axis, op=None):
+        super().__init__(axis, op=op)
+        self.levels = LeveledComposer(self.axis)
+
+
+class IndexSelectionComposer(SelectionComposerBase):
+    """Compose callable to select or sort index labels.
 
     .. note::
         Use :class:`ColumnSelectionComposer` (``C``) if you want to select
         columns.
-
-    This acts as global entrypoint.
 
     Use the global instance like::
 
@@ -498,21 +506,6 @@ class SelectionComposerBase(LabelComposer):
 
         ~(I.levels[0]["b"] | I.levels[1]["X", "Y"])
     """
-    def __init__(self, axis, op=None):
-        super().__init__(axis, op=op)
-        self.levels = LeveledComposer(self.axis)
-
-    # Warn about experimental status of this feature.
-    # TODO: Remove once API is stable
-    def __getattribute__(self, name):
-        attr = super().__getattribute__(name)
-        if not name in {"__init__", "axis"}:
-            warn("Column/index selection with C/I is an experimental feature! The API might change in minor version updates.", stacklevel=2)
-        return attr
-
-
-class IndexSelectionComposer(SelectionComposerBase):
-    """Compose callable to select or sort index."""
     def __init__(self, op=None):
         super().__init__("index", op)
 

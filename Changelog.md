@@ -1,8 +1,8 @@
 # Unreleased (YYYY-MM-DD)
 
+- Move `C` and `I` to stable API: drop warning that they are experimental
 - Make string representation of `C` and `I` even prettier, e.g.,
-  `~C['a':'d'] & C.dtype.isin({int, float})` renders as
-  `~C['a':'d'] & C.dtype in {float, int}`
+  `~C['a':'d'] & C.dtype.isin({int, float})` renders exactly the same.
 
 # 1.4.2 (2023-09-01)
 
