@@ -265,6 +265,10 @@ class UnaryOp(BaseOp):
         op_name, left, right = {
             "invert": ("~", "", ""),
         }.get(op_name, (op_name, "(", ")"))
+        # If we wrap a binary operator, add parentheses around it
+        if isinstance(self.wrapped, BinaryOp):
+            left = "("
+            right = ")"
         return f"{op_name}{left}{self.wrapped._pprint(axis)}{right}"
 
     def __call__(self, axis, df: pd.DataFrame) -> Selection:
@@ -288,7 +292,7 @@ class DtypesOp(BaseOp):
         if len(dtypes) == 1:
             return f'.dtype == {dtypes[0]}'
 
-        return f'.dtype in {{{", ".join(dtypes)}}}'
+        return f'.dtype.isin({{{", ".join(dtypes)}}})'
 
     def __call__(self, axis, df):
         if axis != "columns":
