@@ -155,13 +155,13 @@ class LabelSelectionOp(BaseOp):
 
     def __str__(self):
         if isinstance(self.labels, slice):
-            fmt = lambda o, default: repr(o) if o else default
+            fmt = lambda o, default: repr(o) if o is not None else default
             items = [fmt(self.labels.start, ''), fmt(self.labels.stop, '')]
             if self.labels.step:
                 items.append(repr(self.labels.step))
             pp_labels = ':'.join(items)
         else:
-            pp_labels = ', '.join(str(l) for l in self.labels)
+            pp_labels = ', '.join(repr(l) for l in self.labels)
 
         if self.level:
             return f'(level={self.level})[{pp_labels}]'
