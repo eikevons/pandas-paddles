@@ -1,6 +1,8 @@
 # Unreleased (YYYY-MM-DD)
 
-- ...
+- Make string representation of `C` and `I` even prettier, e.g.,
+  `~C['a':'d'] & C.dtype.isin({int, float})` renders as
+  `~C['a':'d'] & C.dtype in {float, int}`
 
 # 1.4.2 (2023-09-01)
 
