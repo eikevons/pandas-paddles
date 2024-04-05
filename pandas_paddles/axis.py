@@ -104,6 +104,9 @@ class BaseOp:
         """Evaluate operator on data frame from context."""
         raise NotImplementedError("Must be implemented in sub-class.")
 
+    def _pprint(self, axis: Literal["columns", "index"]) -> str:
+        return f"{axis}{self}"
+
 
 class LabelSelectionOp(BaseOp):
     """Explicitely select labels."""
@@ -202,7 +205,7 @@ class LabelPredicateOp(BaseOp):
 
 
 class EllipsisOp(BaseOp):
-    """Select all columns."""
+    """Select all labels (i.e. columns or rows)."""
     def __call__(self, axis, df: pd.DataFrame) -> Selection:
         labels = getattr(df, axis)
         return Selection(mask=np.ones(len(labels), dtype=bool))
@@ -212,7 +215,12 @@ class EllipsisOp(BaseOp):
 
 
 class BinaryOp(BaseOp):
-    """Combine two operators."""
+    """Combine two selection operators with a binary operator.
+
+    Used to implement, e.g.::
+
+        sel_1 | sel_2
+    """
     def __init__(self, left: BaseOp, right: BaseOp, op: Callable[[Any, Any], Any]):
         self.left = left
         self.right = right
@@ -222,6 +230,15 @@ class BinaryOp(BaseOp):
         op_name = getattr(self.op, '__name__', str(self.op))
         return f'({self.left}) {op_name} ({self.right})'
 
+    def _pprint(self, axis: str) -> str:
+        op_name = getattr(self.op, '__name__', str(self.op))
+        op_name = {
+            "and_": "&",
+            "or_": "|",
+        }.get(op_name, op_name)
+        return f"{self.left._pprint(axis)} {op_name} {self.right._pprint(axis)}"
+
+
     def __call__(self, axis, df: pd.DataFrame) -> Selection:
         sel_left = self.left(axis, df)
         sel_right = self.right(axis, df)
@@ -230,6 +247,12 @@ class BinaryOp(BaseOp):
 
 
 class UnaryOp(BaseOp):
+    """Apply unary operator on selection operator.
+
+    Used to implement, e.g., negation::
+
+        ~sel
+    """
     def __init__(self, wrapped: BaseOp, op: Callable[[Any], Any]):
         self.wrapped = wrapped
         self.op = op
@@ -238,23 +261,35 @@ class UnaryOp(BaseOp):
         op_name = getattr(self.op, '__name__', str(self.op))
         return f'{op_name}({self.wrapped})'
 
+    def _pprint(self, axis: str) -> str:
+        op_name = getattr(self.op, '__name__', str(self.op))
+        op_name, left, right = {
+            "invert": ("~", "", ""),
+        }.get(op_name, (op_name, "(", ")"))
+        return f"{op_name}{left}{self.wrapped._pprint(axis)}{right}"
+
     def __call__(self, axis, df: pd.DataFrame) -> Selection:
         sel = self.wrapped(axis, df)
 
         return self.op(sel)
 
 
-class DtypesOp:
+class DtypesOp(BaseOp):
     """Select columns by dtype."""
     def __init__(self, dtypes: Sequence, sample_size:int=10):
         self.dtypes = dtypes
         self.sample_size = sample_size
 
     def __str__(self):
-        dtypes = self.dtypes
+        dtypes = [
+            getattr(t, "__name__", str(t))
+            for t in self.dtypes
+        ]
+
         if len(dtypes) == 1:
-            return f'dtype == {dtypes[0]}'
-        return f'dtype in {dtypes}'
+            return f'.dtype == {dtypes[0]}'
+
+        return f'.dtype in {{{", ".join(dtypes)}}}'
 
     def __call__(self, axis, df):
         if axis != "columns":
@@ -278,18 +313,19 @@ class DtypesOp:
 
 # Objects to create, compose, and evaluate column selection operators
 class OpComposerBase:
-    """Base-class for composing column selection operations.
+    """Base-class for composing column/row selection operations.
 
     This class wraps around the actual operation and overloads the relevant
-    operators (``+``, ``&``, and ``|``) and defers the evaluation of the
-    operators until called (by the context data-frame in ``.loc[]``).
+    operators (``+``, ``&``, ``|``, and ``~``) and defers the evaluation of
+    the operators until called (by the context data-frame in ``.loc[]``).
     """
     def __init__(self, axis:Literal["columns", "index"], op):
         self.axis = axis
         self.op = op or Selection()
 
     def __str__(self):
-        return f'<{self.axis}: {self.op}>'
+        return self.op._pprint(self.axis[0].upper())
+        # return f'<{self.axis}: {self.op._pprint(self.axis)}>'
 
     def get_other_op(self, other):
         """Get/create a wrapped operation for composing operations."""
@@ -389,6 +425,7 @@ class LabelComposer(OpComposerBase):
     def match(self, *args, **kwargs):
         return self._get_op_composer(LabelPredicateOp("match", args, kwargs, self.level))
 
+
 class LeveledComposer:
     """Compose callable to access multi-level index labels."""
     def __init__(self, axis):
@@ -474,6 +511,12 @@ class SelectionComposerBase(LabelComposer):
         return attr
 
 
+class IndexSelectionComposer(SelectionComposerBase):
+    """Compose callable to select or sort index."""
+    def __init__(self, op=None):
+        super().__init__("index", op)
+
+
 class ColumnSelectionComposer(SelectionComposerBase):
     """Compose callable to select or sort columns.
 
@@ -532,8 +575,8 @@ class ColumnSelectionComposer(SelectionComposerBase):
 
         ~(C.levels[0]["b"] | C.levels[1]["X", "Y"])
     """
-    def __init__(self, axis, op=None, sample_size=None):
-        super().__init__(axis, op=op)
+    def __init__(self, op=None, sample_size=None):
+        super().__init__("columns", op=op)
         self.dtype = DtypeComposer(self.axis)
         if sample_size is not None:
             self.sample_size = sample_size
