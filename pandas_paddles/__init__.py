@@ -23,6 +23,9 @@ operations much more concisely. See `Comparison`_ below.
   selection`_)
 * :func:`~pandas_paddles.pipe.report` can be used to inspect the dataframe in a chain
   of operations.
+* :mod:`~pandas_paddles.paddles` contains useful helper functions, e.g.
+  :func:`~pandas_paddles.paddles.str_join` to join multiple columns into a
+  string.
 
 DataFrame examples
 ~~~~~~~~~~~~~~~~~~
@@ -257,11 +260,13 @@ code::
 Author: Eike von Seggern <eike@vonseggern.space>
 """
 __version__ = "1.5.0-dev"
-__all__ = ["C", "DF", "I", "S", "report"]
+__all__ = ["C", "DF", "I", "S", "report", "paddles"]
 
 from .contexts import DataframeContext, SeriesContext
 from .axis import ColumnSelectionComposer, IndexSelectionComposer
 from .pipe import report
+from . import paddles
+
 
 C = ColumnSelectionComposer()
 DF = DataframeContext()
