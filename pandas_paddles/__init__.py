@@ -144,9 +144,6 @@ Select subset of series matching predicate::
 Column or index selection
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. warning::
-    This feature is **experimental**! The API might change in minor version updates.
-
 See :class:`~pandas_paddles.axis.ColumnSelectionComposer` for complete API
 documentation. (:class:`~pandas_paddles.axis.SelectionComposerBase` for
 index-wise selection.)
