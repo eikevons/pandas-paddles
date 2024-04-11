@@ -3,6 +3,8 @@
 - Move `C` and `I` to stable API: drop warning that they are experimental
 - Make string representation of `C` and `I` even prettier, e.g.,
   `~C['a':'d'] & C.dtype.isin({int, float})` renders exactly the same.
+- Add helper functions in `paddles` submodule: `str_join`, `build_filter`,
+  `combine`.
 
 # 1.4.2 (2023-09-01)
 
