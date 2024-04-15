@@ -39,6 +39,9 @@ pytest-cov = "^3.0.0"
 pydata-sphinx-theme = "^0.8.0"
 mypy = "^0.931"
 pandas-stubs = "~1.2"
+# docutils 0.21 cannot be installed with poetry
+# See https://github.com/python-poetry/poetry/issues/9293
+docutils = "!=0.21"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
