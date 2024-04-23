@@ -1,6 +1,10 @@
 Pandas Paddles
 ==============
 
+.. image:: docs/source/_static/paddles-logo-small.png
+   :alt: pandas-paddles logo
+   :align: center
+
 Access the calling ``pandas`` data frame in ``loc[]``, ``iloc[]``,
 ``assign()`` and other methods with ``DF`` to write better chains of
 data frame operations, e.g.:

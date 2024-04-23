@@ -1,6 +1,10 @@
 Welcome to Pandas Paddles's documentation!
 ==========================================
 
+.. image:: _static/paddles-logo-small.png
+   :alt: Pandas paddles logo
+   :align: center
+
 .. toctree::
 
 {% if githash is defined %}
