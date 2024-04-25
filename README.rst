@@ -11,20 +11,21 @@ data frame operations, e.g.:
 
 .. code-block:: python
 
-    df = (df
-          # Select all rows with column "x" < 2
-          .loc[DF["x"] < 2]
-          .assign(
-              # Shift "x" by its minimum.
-              y = DF["x"] - DF["x"].min(),
-              # Clip "x" to it's central 50% window. Note how DF is used
-              # in the argument to `clip()`.
-              z = DF["x"].clip(
-                  lower=DF["x"].quantile(0.25),
-                  upper=DF["x"].quantile(0.75)
-              ),
-          )
-         )
+    df = (
+        df
+        # Select all rows with column "x" < 2
+        .loc[DF["x"] < 2]
+        .assign(
+            # Shift "x" by its minimum.
+            y = DF["x"] - DF["x"].min(),
+            # Clip "x" to it's central 50% window. Note how DF is used
+            # in the argument to `clip()`.
+            z = DF["x"].clip(
+                lower=DF["x"].quantile(0.25),
+                upper=DF["x"].quantile(0.75)
+            ),
+        )
+    )
 
 .. image:: https://readthedocs.org/projects/pandas-paddles/badge/?version=latest
   :target: https://pandas-paddles.readthedocs.io/en/latest/?badge=latest
@@ -65,7 +66,8 @@ Instead of writing "traditional" Pandas like this:
 .. code-block:: python
 
     df_in = pd.DataFrame({"x": range(5)})
-    df = df_in.assign(y = df_in["x"] // 2)
+    df = df_in.copy()
+    df["y"] = df["x"] // 2
     df = df.loc[df["y"] <= 1]
     df
     #    x  y
@@ -79,10 +81,11 @@ One can write:
 .. code-block:: python
 
     from pandas_paddles import DF
-    df = (df_in
-          .assign(y = DF["x"] // 2)
-          .loc[DF["y"] <= 1]
-         )
+    df = (
+      df_in
+      .assign(y = DF["x"] // 2)
+      .loc[DF["y"] <= 1]
+    )
 
 This is especially handy when re-iterating on data frame manipulations
 interactively, e.g. in a notebook (just imagine you have to rename
@@ -97,7 +100,7 @@ context:
         "X": range(5),
         "y": ["1", "a", "c", "D", "e"],
     })
-    df.loc[DF["y"]str.isupper() | DF["y"]str.isnumeric()]
+    df.loc[DF["y"].str.isupper() | DF["y"].str.isnumeric()]
     #    X  y
     # 0  0  1
     # 3  3  D
@@ -125,13 +128,13 @@ You can even use ``DF`` in the arguments to methods:
     # 3  3  5  3.0
     # 4  4  6  4.0
 
-When working with ``~pd.Series`` the ``S`` object exists. It can be used
+When working with ``pd.Series`` the ``S`` object exists. It can be used
 similar to ``DF``:
 
 .. code-block:: python
 
   s = pd.Series(range(5))
-  s[s < 3]
+  s[S < 3]
   # 0    0
   # 1    1
   # 2    2
