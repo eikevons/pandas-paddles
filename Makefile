@@ -1,11 +1,12 @@
 PACKAGE_NAME :=  pandas_paddles
-IMAGE_NAME := $(PACKAGE_NAME)
-DEV_IMAGE_NAME := $(IMAGE_NAME)-dev
+IMAGE_NAME := $(PACKAGE_NAME)-dev
+
+WORKDIR := /project
 
 # Filter tests to run:
 # make TESTS="pattern" test
 TESTS :=
-PYTEST_ARGS := --cov=/app/$(PACKAGE_NAME) -p no:cacheprovider -k "$(TESTS)" /app/tests
+PYTEST_ARGS := --cov=$(WORKDIR)/$(PACKAGE_NAME) -p no:cacheprovider -k "$(TESTS)" $(WORKDIR)/tests
 
 # Enable BuildKit, necessary for `RUN --mount ...`
 # See https://docs.docker.com/develop/develop-images/build_enhancements/
@@ -14,8 +15,7 @@ export DOCKER_BUILDKIT
 
 help:
 	@echo "Provided targets"
-	@echo "image      build prod image"
-	@echo "devimage   build development image"
+	@echo "image      build development image"
 	@echo "shell      start shell in development image"
 	@echo "test       run unit tests. Use make TESTS=... to filter tests"
 	@echo "watch      run unit tests on every change. Use make TESTS=... to filter tests"
@@ -25,75 +25,65 @@ help:
 	@echo "format"
 	@echo "wheel"
 
-.PHONY: image devimage shell test watch docs
+.PHONY: image image shell test watch docs
 
 image: $(IMAGE_NAME).stamp
 
-devimage: $(DEV_IMAGE_NAME).stamp
 
-$(IMAGE_NAME).stamp: docker/prod.dockerfile pyproject.toml poetry.lock docker/install-prod.sh
+$(IMAGE_NAME).stamp: docker/Dockerfile pyproject.toml poetry.lock docker/entrypoint-ensure-home.sh
 	docker build --rm \
 	    --tag $(IMAGE_NAME) \
 	    --file $< \
 	    .
 	@touch $@
 
-$(DEV_IMAGE_NAME).stamp: docker/dev.dockerfile pyproject.toml poetry.lock $(IMAGE_NAME).stamp
-	docker build --rm \
-	    --tag $(DEV_IMAGE_NAME) \
-	    --build-arg "SRC_IMAGE=$(IMAGE_NAME)" \
-	    --file $< \
-	    .
-	@touch $@
-
 # Interactive targets
-shell: devimage
+shell: image
 	docker run --rm -ti \
-	    --name $(DEV_IMAGE_NAME)-$@ \
-	    --volume "$(PWD):/app" \
+	    --name $(IMAGE_NAME)-$@ \
+	    --volume "$(PWD):$(WORKDIR)" \
 	    --env "HOME=/tmp/home" \
 	    --user "$(shell id -u):$(shell id -g)" \
-	    $(DEV_IMAGE_NAME)
+	    $(IMAGE_NAME) bash
 
-test: devimage
+test: image
 	docker run --rm -ti \
-	    --name $(DEV_IMAGE_NAME)-$@ \
-	    --volume "$(PWD):/app:ro" \
+	    --name $(IMAGE_NAME)-$@ \
+	    --volume "$(PWD):$(WORKDIR):ro" \
 	    --env "HOME=/tmp/home" \
 	    -w /tmp/home \
-	    $(DEV_IMAGE_NAME) \
-	    pytest $(PYTEST_ARGS)
+	    $(IMAGE_NAME) \
+	    python -m pytest $(PYTEST_ARGS)
 
-watch: devimage
+watch: image
 	docker run --rm -ti \
-	    --name $(DEV_IMAGE_NAME)-$@ \
-	    --volume "$(PWD):/app:ro" \
+	    --name $(IMAGE_NAME)-$@ \
+	    --volume "$(PWD):$(WORKDIR):ro" \
 	    --env "HOME=/tmp/home" \
 	    -w /tmp/home \
-	    $(DEV_IMAGE_NAME) \
-	    pytest-watch /app/$(PACKAGE_NAME) /app/tests -- $(PYTEST_ARGS)
+	    $(IMAGE_NAME) \
+	    pytest-watch $(WORKDIR)/$(PACKAGE_NAME) $(WORKDIR)/tests -- $(PYTEST_ARGS)
 
-mypy: devimage
+mypy: image
 	docker run --rm -ti \
-	    --name $(DEV_IMAGE_NAME)-$@ \
-	    --volume "$(PWD):/app:ro" \
+	    --name $(IMAGE_NAME)-$@ \
+	    --volume "$(PWD):$(WORKDIR):ro" \
 	    --env "HOME=/tmp/home" \
 	    -w /tmp/home \
-	    $(DEV_IMAGE_NAME) \
-	    mypy /app/pandas_paddles/
+	    $(IMAGE_NAME) \
+	    mypy $(WORKDIR)/pandas_paddles/
 
 
-docs: devimage
-# NOTE: Instead of `--volume "$(PWD)/docs/source/api:/app/docs/source/api"` we
-# could also use `--tmpfs /app/docs/source/api`. But this works only on Linux
+docs: image
+# NOTE: Instead of `--volume "$(PWD)/docs/source/api:$(WORKDIR)/docs/source/api"` we
+# could also use `--tmpfs $(WORKDIR)/docs/source/api`. But this works only on Linux
 # (See https://docs.docker.com/storage/tmpfs/).
 	@mkdir -p docs/build/ docs/source/api
-	@docker run --rm --name "$(DEV_IMAGE_NAME)-$@" \
-	    --volume "$(PWD):/app:ro" \
-	    --volume "$(PWD)/docs/build:/app/docs/build" \
-	    --volume "$(PWD)/docs/source/api:/app/docs/source/api" \
+	@docker run --rm --name "$(IMAGE_NAME)-$@" \
+	    --volume "$(PWD):$(WORKDIR):ro" \
+	    --volume "$(PWD)/docs/build:$(WORKDIR)/docs/build" \
+	    --volume "$(PWD)/docs/source/api:$(WORKDIR)/docs/source/api" \
 	    --user "$(shell id -u):$(shell id -g)" \
-	    --workdir /app \
-	    $(DEV_IMAGE_NAME) \
-	    make -C /app/docs html
+	    $(IMAGE_NAME) \
+	    make -C $(WORKDIR)/docs html
 
