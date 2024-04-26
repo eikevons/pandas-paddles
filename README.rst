@@ -177,7 +177,7 @@ Similar projects for pandas
 Development
 ===========
 
-Development is containerized with [Docker](https://www.docker.com/) to
+Development is containerized with `Docker <https://www.docker.com/>`_ to
 separte from host systems and improve reproducability. No other
 prerequisites are needed on the host system.
 
@@ -204,5 +204,5 @@ complete list):
         # 2. In the container instance:
         I have no name!@7d0e85b3a303:/app$ poetry add --dev --lock falcon
 
-- Build the development image ``make devimage``
+- Build the development image ``make image``
   (Note: This should be done automatically for the targets.) 
