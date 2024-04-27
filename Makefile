@@ -11,6 +11,7 @@ DOCKER_ARGS := -ti --rm \
 	       --volume "$(PWD):$(WORKDIR)" \
 	       --env "HOME=/tmp/home" \
 	       --user "$(shell id -u):$(shell id -g)"
+LAB_PORT := 8888
 
 # Enable BuildKit, necessary for `RUN --mount ...`
 # See https://docs.docker.com/develop/develop-images/build_enhancements/
@@ -48,6 +49,17 @@ shell: image
 	    --name $(IMAGE_NAME)-$@ \
 	    $(IMAGE_NAME) \
 	    bash
+
+lab: image
+	docker run \
+	    $(DOCKER_ARGS) \
+	    --name $(IMAGE_NAME)-$@ \
+	    --publish 8888:$(LAB_PORT) \
+	    $(IMAGE_NAME) \
+	    jupyter lab \
+	      --ServerApp.token="" \
+	      --ip=0.0.0.0 \
+	      --FileContentsManager.checkpoints_kwargs="root_dir"="/tmp/ipynb_checkpoints"
 
 test: image
 	docker run \

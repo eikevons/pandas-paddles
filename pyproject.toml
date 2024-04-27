@@ -43,6 +43,7 @@ docutils = "!=0.21"
 
 [tool.poetry.group.dev.dependencies]
 nbsphinx = "^0.9.3"
+jupyterlab = "^4.1.8"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

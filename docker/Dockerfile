@@ -19,18 +19,26 @@ RUN : \
 
 WORKDIR /project
 
+COPY docker/entrypoint-ensure-home.sh /entrypoint
+ENTRYPOINT ["/entrypoint"]
+
 # Copy project and dependencies.
 COPY pyproject.toml poetry.lock* .
 
 # Prevent poetry from creating virtual envs
 ENV POETRY_VIRTUALENVS_CREATE=false
 
-COPY docker/entrypoint-ensure-home.sh /entrypoint
-ENTRYPOINT ["/entrypoint"]
+# Install dependencies project
+RUN : \
+ && poetry install --no-root \
+ && :
 
-# Install project
-RUN --mount=type=ssh,mode=0666 : \
- && poetry install  --no-root \
+COPY README.rst .
+COPY pandas_paddles pandas_paddles
+COPY tests tests
+# Install dependencies project
+RUN : \
+ && poetry install \
  && :
 
 # Make sure packages can be updaated at run-time
