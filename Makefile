@@ -7,6 +7,10 @@ WORKDIR := /project
 # make TESTS="pattern" test
 TESTS :=
 PYTEST_ARGS := --cov=$(WORKDIR)/$(PACKAGE_NAME) -p no:cacheprovider -k "$(TESTS)" $(WORKDIR)/tests
+DOCKER_ARGS := -ti --rm \
+	       --volume "$(PWD):$(WORKDIR)" \
+	       --env "HOME=/tmp/home" \
+	       --user "$(shell id -u):$(shell id -g)"
 
 # Enable BuildKit, necessary for `RUN --mount ...`
 # See https://docs.docker.com/develop/develop-images/build_enhancements/
@@ -39,37 +43,30 @@ $(IMAGE_NAME).stamp: docker/Dockerfile pyproject.toml poetry.lock docker/entrypo
 
 # Interactive targets
 shell: image
-	docker run --rm -ti \
+	docker run \
+	    $(DOCKER_ARGS) \
 	    --name $(IMAGE_NAME)-$@ \
-	    --volume "$(PWD):$(WORKDIR)" \
-	    --env "HOME=/tmp/home" \
-	    --user "$(shell id -u):$(shell id -g)" \
-	    $(IMAGE_NAME) bash
+	    $(IMAGE_NAME) \
+	    bash
 
 test: image
-	docker run --rm -ti \
+	docker run \
+	    $(DOCKER_ARGS) \
 	    --name $(IMAGE_NAME)-$@ \
-	    --volume "$(PWD):$(WORKDIR):ro" \
-	    --env "HOME=/tmp/home" \
-	    -w /tmp/home \
 	    $(IMAGE_NAME) \
 	    python -m pytest $(PYTEST_ARGS)
 
 watch: image
-	docker run --rm -ti \
+	docker run \
+	    $(DOCKER_ARGS) \
 	    --name $(IMAGE_NAME)-$@ \
-	    --volume "$(PWD):$(WORKDIR):ro" \
-	    --env "HOME=/tmp/home" \
-	    -w /tmp/home \
 	    $(IMAGE_NAME) \
 	    pytest-watch $(WORKDIR)/$(PACKAGE_NAME) $(WORKDIR)/tests -- $(PYTEST_ARGS)
 
 mypy: image
-	docker run --rm -ti \
+	docker run \
+	    $(DOCKER_ARGS) \
 	    --name $(IMAGE_NAME)-$@ \
-	    --volume "$(PWD):$(WORKDIR):ro" \
-	    --env "HOME=/tmp/home" \
-	    -w /tmp/home \
 	    $(IMAGE_NAME) \
 	    mypy $(WORKDIR)/pandas_paddles/
 
@@ -79,11 +76,11 @@ docs: image
 # could also use `--tmpfs $(WORKDIR)/docs/source/api`. But this works only on Linux
 # (See https://docs.docker.com/storage/tmpfs/).
 	@mkdir -p docs/build/ docs/source/api
-	@docker run --rm --name "$(IMAGE_NAME)-$@" \
-	    --volume "$(PWD):$(WORKDIR):ro" \
+	docker run \
+	    $(DOCKER_ARGS) \
+	    --name "$(IMAGE_NAME)-$@" \
 	    --volume "$(PWD)/docs/build:$(WORKDIR)/docs/build" \
 	    --volume "$(PWD)/docs/source/api:$(WORKDIR)/docs/source/api" \
-	    --user "$(shell id -u):$(shell id -g)" \
 	    $(IMAGE_NAME) \
 	    make -C $(WORKDIR)/docs html
 

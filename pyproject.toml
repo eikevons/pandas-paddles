@@ -43,6 +43,9 @@ pandas-stubs = "~1.2"
 # See https://github.com/python-poetry/poetry/issues/9293
 docutils = "!=0.21"
 
+[tool.poetry.group.dev.dependencies]
+nbsphinx = "^0.9.3"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
