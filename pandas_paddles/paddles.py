@@ -8,7 +8,11 @@ from functools import reduce
 import operator
 from typing import Any, Callable, Dict, Iterable, Literal, Union
 
-from .contexts import DataframeContext
+from .pandas import PandasDataframeContext
+try:
+    from .dask import DF
+except ImportError:
+    from .pandas import DF
 
 __all__ = [
     "build_filter",
@@ -16,10 +20,8 @@ __all__ = [
     "str_join",
 ]
 
-DF = DataframeContext()
-
 # Some typing hints
-ColSpec = Union[str, DataframeContext]
+ColSpec = Union[str, PandasDataframeContext]
 BinaryOp = Union[
     Callable[[Any, Any], Any],
     Literal["and"],
@@ -29,7 +31,7 @@ BinaryOp = Union[
 ]
 
 
-def ensure_DF_expr(col: ColSpec) -> DataframeContext:
+def ensure_DF_expr(col: ColSpec) -> PandasDataframeContext:
     """Convert column names to ``DF``-expressions when necessary.
 
     Parameters
@@ -39,7 +41,7 @@ def ensure_DF_expr(col: ColSpec) -> DataframeContext:
 
     Returns
     -------
-    DataframeContext
+    PandasDataframeContext
         The ``DF``-expression of ``col`` (if a ``str``) or just ``col``.
 
     Examples
@@ -61,7 +63,7 @@ def ensure_DF_expr(col: ColSpec) -> DataframeContext:
     return col
 
 
-def str_join(sep: str, col1: ColSpec, *cols: ColSpec) -> DataframeContext:
+def str_join(sep: str, col1: ColSpec, *cols: ColSpec) -> PandasDataframeContext:
     """Create expression to join multiple columns in a string.
 
     This is similar to ``str.join``
@@ -80,7 +82,7 @@ def str_join(sep: str, col1: ColSpec, *cols: ColSpec) -> DataframeContext:
 
     Returns
     -------
-    DataframeContext
+    PandasDataframeContext
         The ``DF``-expression, a callable taking a
         :class:`~pandas.DataFrame` as argument.
 
@@ -119,9 +121,9 @@ def str_join(sep: str, col1: ColSpec, *cols: ColSpec) -> DataframeContext:
 
 
 def combine(
-    bool_expressions: Iterable[DataframeContext],
+    bool_expressions: Iterable[PandasDataframeContext],
     op: Callable[[Any, Any], Any] = operator.and_,
-) -> DataframeContext:
+) -> PandasDataframeContext:
     """Combine multiple DF-expressions to use in df.loc[].
 
     The ``DF``-expressions must evaluate to a boolean array, e.g.,::
@@ -156,7 +158,7 @@ def combine(
 
 def build_filter(
     predicates: Dict[ColSpec, Any], op: BinaryOp = operator.and_
-) -> DataframeContext:
+) -> PandasDataframeContext:
     """Build a filter expression from column-value pairs
 
     ::
@@ -185,7 +187,7 @@ def build_filter(
 
     Returns
     -------
-    DataframeContext
+    PandasDataframeContext
         The ``DF``-expression combining the predicates.
     """
     expressions = (ensure_DF_expr(col) == val for col, val in predicates.items())

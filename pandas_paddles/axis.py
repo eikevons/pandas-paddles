@@ -1,6 +1,7 @@
 """Select axis labels (columns or index) of a data frame."""
 import operator
-from typing import Any, Callable, List, Optional, Sequence
+from typing import Any, Callable, Optional, Sequence
+import typing
 try:
     from typing import Literal
 except ImportError:
@@ -9,8 +10,11 @@ except ImportError:
 import numpy as np
 import pandas as pd
 
+Indices = "Indices"
+AnyDataframe = "AnyDataframe"
+if typing.TYPE_CHECKING:
+    from .types import AnyDataframe, Indices
 
-Indices = List[int]
 
 
 class Selection:
@@ -40,7 +44,7 @@ class Selection:
         self.included: Optional[Indices] = included
         self.excluded: Optional[Indices] = excluded
 
-    def apply(self, axis:Literal["columns", "index"], df: pd.DataFrame):
+    def apply(self, axis:Literal["columns", "index"], df: AnyDataframe):
         labels = getattr(df, axis)
         included = self.included
         if included is None:
@@ -99,7 +103,7 @@ def union_indices(left: Indices, right: Indices) -> Indices:
 # Column selection operator closures
 class BaseOp:
     """API definition of the closure object."""
-    def __call__(self, axis: Literal["columns", "index"], df: pd.DataFrame) -> Selection:
+    def __call__(self, axis: Literal["columns", "index"], df: AnyDataframe) -> Selection:
         """Evaluate operator on data frame from context."""
         raise NotImplementedError("Must be implemented in sub-class.")
 
@@ -191,7 +195,7 @@ class LabelPredicateOp(BaseOp):
             return f'(level={self.level}).{self.meth}({pp_args})'
         return f'.{self.meth}({pp_args})'
 
-    def __call__(self, axis, df: pd.DataFrame) -> Selection:
+    def __call__(self, axis, df: AnyDataframe) -> Selection:
         labels = getattr(df, axis)
         if self.level is None:
             str_accessor = labels.str
@@ -205,7 +209,7 @@ class LabelPredicateOp(BaseOp):
 
 class EllipsisOp(BaseOp):
     """Select all labels (i.e. columns or rows)."""
-    def __call__(self, axis, df: pd.DataFrame) -> Selection:
+    def __call__(self, axis, df: AnyDataframe) -> Selection:
         labels = getattr(df, axis)
         return Selection(mask=np.ones(len(labels), dtype=bool))
 
@@ -238,7 +242,7 @@ class BinaryOp(BaseOp):
         return f"{self.left._pprint(axis)} {op_name} {self.right._pprint(axis)}"
 
 
-    def __call__(self, axis, df: pd.DataFrame) -> Selection:
+    def __call__(self, axis, df: AnyDataframe) -> Selection:
         sel_left = self.left(axis, df)
         sel_right = self.right(axis, df)
 
@@ -271,7 +275,7 @@ class UnaryOp(BaseOp):
             right = ")"
         return f"{op_name}{left}{self.wrapped._pprint(axis)}{right}"
 
-    def __call__(self, axis, df: pd.DataFrame) -> Selection:
+    def __call__(self, axis, df: AnyDataframe) -> Selection:
         sel = self.wrapped(axis, df)
 
         return self.op(sel)
@@ -389,7 +393,7 @@ class OpComposerBase:
             op=operator.invert,
         ))
 
-    def __call__(self, df:pd.DataFrame) -> pd.Index:
+    def __call__(self, df: AnyDataframe) -> pd.Index:
         """Evaluate the wrapped operations."""
         selection = self.op(self.axis, df)
         return selection.apply(self.axis, df)

@@ -1,6 +1,6 @@
 # Unreleased (YYYY-MM-DD)
 
-- ...
+- Add support for dask dataframes
 
 # 1.5.0 (2024-04-17)
 

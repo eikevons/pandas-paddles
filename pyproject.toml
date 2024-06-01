@@ -42,6 +42,7 @@ pandas-stubs = "~1.2"
 # docutils 0.21 cannot be installed with poetry
 # See https://github.com/python-poetry/poetry/issues/9293
 docutils = "!=0.21"
+dask = {version = ">=2024.5.2", python = "^3.9"}
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
