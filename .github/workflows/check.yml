@@ -7,18 +7,15 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        include:
-          - name: py38-pd13
-            python: '3.8'
-          - name: py311-pd20
-            python: '3.11'
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
     steps:
       - uses: actions/checkout@v2
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python }}
+          python-version: ${{ matrix.python-version }}
 
       - name: Install tox
         run: |
@@ -26,4 +23,4 @@ jobs:
           pip install tox
 
       - name: Run tox
-        run: tox -e ${{ matrix.name }}
+        run: tox
