@@ -7,39 +7,23 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        # Pandas >= 1.2 requires Python >= 3.7
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
-        pandas-version: ["1.3", "1.4", "1.5", "2.0"]
-        exclude:
-          - pandas-version: "1.3"
-            python-version: "3.11"
-
-          - pandas-version: "1.4"
-            python-version: "3.11"
-
-          - pandas-version: "1.5"
-            python-version: "3.11"
+        include:
+          - name: py38-pd13
+            python: '3.8'
+          - name: py311-pd20
+            python: '3.11'
     steps:
       - uses: actions/checkout@v2
 
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.python }}
 
-      - name: Install Poetry and requirements
+      - name: Install tox
         run: |
-          pip install poetry
-          poetry config virtualenvs.create false
-          # Remove poetry.lock to allow installing different versions of pandas
-          rm poetry.lock
-          # Pin the pandas version in dependencies
-          sed -i 's/pandas = ".*"$/pandas = "~${{ matrix.pandas-version }}"/' pyproject.toml
-          # Pin the pandas version in dependencies
-          sed -i 's/python = ".*"$/python = "~${{ matrix.python-version }}"/' pyproject.toml
-          cat pyproject.toml
-          poetry install --no-root
+          pip install -U pip
+          pip install tox
 
-      - name: Run unit tests
-        run: |
-          pytest tests/
+      - name: Run tox
+        run: tox -e ${{ matrix.name }}
