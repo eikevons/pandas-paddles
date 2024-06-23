@@ -17,7 +17,7 @@ export DOCKER_BUILDKIT
 help:
 	@echo "Provided targets"
 	@echo "tests     run all unit tests against all Python versions"
-	@echo "test-X.Y  run unit tests agains Python version X.Y"
+	@echo "tests-X.Y run unit tests agains Python version X.Y"
 	@echo "shell-X.Y start shell in test-image for Python version X.Y"
 	@echo "image-X.Y build test-image for Python version X.Y"
 	@echo "TODO:"
