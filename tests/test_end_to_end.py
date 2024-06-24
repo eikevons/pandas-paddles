@@ -43,7 +43,7 @@ def test_DF_end_to_end(df):
 
 @pytest.mark.skipif(not HAS_DASK, reason="dask not available")
 def test_DF_end_to_end_dask(df):
-    dask_df = dask.dataframe.from_pandas(df, chunksize=2, name="test-df")
+    dask_df = dask.dataframe.from_pandas(df, chunksize=2)
     dask_test = ops(dask_df)
     pd_test = dask_test.compute()
     expected = pd.DataFrame({
@@ -51,12 +51,8 @@ def test_DF_end_to_end_dask(df):
         "y": [0, 0, 1, 1],
         "z": [0, 0, 2, 3],
     })
+
     return pd.testing.assert_frame_equal(pd_test, expected)
-
-
-
-
-
 
 
 def test_S_end_to_end(ser):
