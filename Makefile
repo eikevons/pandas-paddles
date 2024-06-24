@@ -1,5 +1,6 @@
 PACKAGE_NAME :=  pandas_paddles
-IMAGE_NAME := $(PACKAGE_NAME)-dev
+IMAGE_BASE := $(PACKAGE_NAME)-test
+TOX_ARGS := --workdir /tmp/tox
 
 WORKDIR := /project
 
@@ -15,75 +16,118 @@ export DOCKER_BUILDKIT
 
 help:
 	@echo "Provided targets"
-	@echo "image      build development image"
-	@echo "shell      start shell in development image"
-	@echo "test       run unit tests. Use make TESTS=... to filter tests"
+	@echo "tests     run all unit tests against all Python versions"
+	@echo "tests-X.Y run unit tests agains Python version X.Y"
+	@echo "shell-X.Y start shell in test-image for Python version X.Y"
+	@echo "image-X.Y build test-image for Python version X.Y"
+	@echo "TODO:"
 	@echo "watch      run unit tests on every change. Use make TESTS=... to filter tests"
 	@echo "mypy       run mypy on package"
 	@echo "docs       create documentation."
-	@echo "TODO:"
 	@echo "format"
 	@echo "wheel"
 
 .PHONY: image image shell test watch docs
 
-image: $(IMAGE_NAME).stamp
+image: image-3.10
 
 
-$(IMAGE_NAME).stamp: docker/Dockerfile pyproject.toml poetry.lock docker/entrypoint-ensure-home.sh
+# TODO: Why is
+#     image-%: $(IMAGE_BASE)-%.stamp
+# not working?
+
+image-3.8: $(IMAGE_BASE)-3.8.stamp
+image-3.9: $(IMAGE_BASE)-3.9.stamp
+image-3.10: $(IMAGE_BASE)-3.10.stamp
+image-3.11: $(IMAGE_BASE)-3.11.stamp
+image-3.12: $(IMAGE_BASE)-3.12.stamp
+
+$(IMAGE_BASE)-%.stamp: docker/Dockerfile
 	docker build --rm \
-	    --tag $(IMAGE_NAME) \
+	    --tag $(IMAGE_BASE):$* \
+	    --build-arg PY_VERSION=$* \
 	    --file $< \
 	    .
 	@touch $@
 
-# Interactive targets
-shell: image
-	docker run --rm -ti \
-	    --name $(IMAGE_NAME)-$@ \
-	    --volume "$(PWD):$(WORKDIR)" \
-	    --env "HOME=/tmp/home" \
-	    --user "$(shell id -u):$(shell id -g)" \
-	    $(IMAGE_NAME) bash
+.tox:
+	mkdir -p .tox
 
-test: image
-	docker run --rm -ti \
-	    --name $(IMAGE_NAME)-$@ \
+
+Xtests-3.10: image-3.10 | .tox
+	docker run --rm \
+	   --user $(shell id -u):$(shell id -g) \
 	    --volume "$(PWD):$(WORKDIR):ro" \
-	    --env "HOME=/tmp/home" \
-	    -w /tmp/home \
-	    $(IMAGE_NAME) \
-	    python -m pytest $(PYTEST_ARGS)
+	    --volume "$(PWD)/.tox:/tmp/tox" \
+	    $(IMAGE_BASE):3.10 \
+	    sh -c "tox $(TOX_ARGS)"
 
-watch: image
-	docker run --rm -ti \
-	    --name $(IMAGE_NAME)-$@ \
+tests: tests-3.8 tests-3.9 tests-3.10 tests-3.11 tests-3.12
+
+tests-%: image-% | .tox
+	docker run --rm \
+	   --user $(shell id -u):$(shell id -g) \
 	    --volume "$(PWD):$(WORKDIR):ro" \
-	    --env "HOME=/tmp/home" \
-	    -w /tmp/home \
-	    $(IMAGE_NAME) \
-	    pytest-watch $(WORKDIR)/$(PACKAGE_NAME) $(WORKDIR)/tests -- $(PYTEST_ARGS)
+	    --volume "$(PWD)/.tox:/tmp/tox" \
+	    $(IMAGE_BASE):$* \
+	    tox $(TOX_ARGS)
 
-mypy: image
-	docker run --rm -ti \
-	    --name $(IMAGE_NAME)-$@ \
+shell-%: image-% | .tox
+	docker run --rm \
+	   --user $(shell id -u):$(shell id -g) \
 	    --volume "$(PWD):$(WORKDIR):ro" \
-	    --env "HOME=/tmp/home" \
-	    -w /tmp/home \
-	    $(IMAGE_NAME) \
-	    mypy $(WORKDIR)/pandas_paddles/
+	    --volume "$(PWD)/.tox:/tmp/tox" \
+	    -ti \
+	    $(IMAGE_BASE):$* \
+	    bash
+
+# # Interactive targets
+# shell: image
+# 	docker run --rm -ti \
+# 	    --name $(IMAGE_NAME)-$@ \
+# 	    --volume "$(PWD):$(WORKDIR)" \
+# 	    --env "HOME=/tmp/home" \
+# 	    --user "$(shell id -u):$(shell id -g)" \
+# 	    $(IMAGE_NAME) bash
+
+# test: image
+# 	docker run --rm -ti \
+# 	    --name $(IMAGE_NAME)-$@ \
+# 	    --volume "$(PWD):$(WORKDIR):ro" \
+# 	    --env "HOME=/tmp/home" \
+# 	    -w /tmp/home \
+# 	    $(IMAGE_NAME) \
+# 	    python -m pytest $(PYTEST_ARGS)
+
+# watch: image
+# 	docker run --rm -ti \
+# 	    --name $(IMAGE_NAME)-$@ \
+# 	    --volume "$(PWD):$(WORKDIR):ro" \
+# 	    --env "HOME=/tmp/home" \
+# 	    -w /tmp/home \
+# 	    $(IMAGE_NAME) \
+# 	    pytest-watch $(WORKDIR)/$(PACKAGE_NAME) $(WORKDIR)/tests -- $(PYTEST_ARGS)
+
+# mypy: image
+# 	docker run --rm -ti \
+# 	    --name $(IMAGE_NAME)-$@ \
+# 	    --volume "$(PWD):$(WORKDIR):ro" \
+# 	    --env "HOME=/tmp/home" \
+# 	    -w /tmp/home \
+# 	    $(IMAGE_NAME) \
+# 	    mypy $(WORKDIR)/pandas_paddles/
 
 
-docs: image
-# NOTE: Instead of `--volume "$(PWD)/docs/source/api:$(WORKDIR)/docs/source/api"` we
-# could also use `--tmpfs $(WORKDIR)/docs/source/api`. But this works only on Linux
-# (See https://docs.docker.com/storage/tmpfs/).
-	@mkdir -p docs/build/ docs/source/api
-	@docker run --rm --name "$(IMAGE_NAME)-$@" \
-	    --volume "$(PWD):$(WORKDIR):ro" \
-	    --volume "$(PWD)/docs/build:$(WORKDIR)/docs/build" \
-	    --volume "$(PWD)/docs/source/api:$(WORKDIR)/docs/source/api" \
-	    --user "$(shell id -u):$(shell id -g)" \
-	    $(IMAGE_NAME) \
-	    make -C $(WORKDIR)/docs html
+# docs: image
+# # NOTE: Instead of `--volume "$(PWD)/docs/source/api:$(WORKDIR)/docs/source/api"` we
+# # could also use `--tmpfs $(WORKDIR)/docs/source/api`. But this works only on Linux
+# # (See https://docs.docker.com/storage/tmpfs/).
+# 	@mkdir -p docs/build/ docs/source/api
+# 	@docker run --rm --name "$(IMAGE_NAME)-$@" \
+# 	    --volume "$(PWD):$(WORKDIR):ro" \
+# 	    --volume "$(PWD)/docs/build:$(WORKDIR)/docs/build" \
+# 	    --volume "$(PWD)/docs/source/api:$(WORKDIR)/docs/source/api" \
+# 	    --user "$(shell id -u):$(shell id -g)" \
+# 	    $(IMAGE_NAME) \
+# 	    make -C $(WORKDIR)/docs html
 
