@@ -1,11 +1,10 @@
 """Helpers for working with :meth:`pandas.DataFrame.pipe()`."""
 import pandas as pd
 
-from .contexts import DataframeContext
-
-# Here to prevent recursive import from __init__.py
-# r
-DF = DataframeContext()
+try:
+    from .dask import DF
+except ImportError:
+    from .pandas import DF
 
 def _generate_report(args, print_func, print_kwargs):
     def inner_report(df):

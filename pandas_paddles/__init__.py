@@ -259,13 +259,16 @@ Author: Eike von Seggern <eike@vonseggern.space>
 __version__ = "1.6.0-dev"
 __all__ = ["C", "DF", "I", "S", "report", "paddles"]
 
-from .contexts import DataframeContext, SeriesContext
+
 from .axis import ColumnSelectionComposer, IndexSelectionComposer
 from .pipe import report
 from . import paddles
+try:
+    from .dask import DF, S
+except ImportError as e:
+    print("Using pandas-only...", e)
+    from .pandas import DF, S
 
 
 C = ColumnSelectionComposer()
-DF = DataframeContext()
 I = IndexSelectionComposer()
-S = SeriesContext()
