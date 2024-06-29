@@ -2,6 +2,7 @@
 
 from itertools import chain
 from typing import Any, Callable, ClassVar, Dict, Iterable, Optional, Union, Tuple, Type
+from warnings import warn
 
 import pandas as pd
 
@@ -67,6 +68,10 @@ def get_obj_attr_doc(obj_or_class: Any, attr: str):
         if a:
             return a.__doc__
     return None
+
+
+def _get_closure_cmp_keys(closures: Iterable[ClosureBase]) -> Tuple:
+    return tuple(cl._cmp_values() for cl in closures)
 
 
 class ClosureFactoryBase:
@@ -178,3 +183,34 @@ class ClosureFactoryBase:
                     cur = new
 
         return cur.root
+
+    def __bool__(self):
+        """Custom __bool__ to allow comparing closures in if-statements."""
+        if not self._closures:
+            return True
+
+        cl = self._closures[-1]
+        if not isinstance(cl, MethodClosure):
+            return True
+
+        op = cl.name[2:-2] 
+        if op not in {"eq", "ne", "le", "lt", "ge", "gt"}:
+            return True
+        if op in {"ge", "gt", "le", "lt"}:
+            warn("Evaluating context expression directly as boolean with <, <=, >, >=. Are you sure you intend this?", stacklevel=1)
+
+        left = self._closures[:-1]
+        right_expr = cl.args[0]
+
+        ask_equal = op in {"eq", "le", "ge"}
+        is_equal = False
+
+        if isinstance(right_expr, type(self)):
+            right = right_expr._closures
+
+            left_cmp = _get_closure_cmp_keys(left)
+            right_cmp = _get_closure_cmp_keys(right)
+
+            is_equal = left_cmp == right_cmp
+
+        return (is_equal and ask_equal) or (not is_equal and not ask_equal)

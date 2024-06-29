@@ -10,6 +10,7 @@ PandasContext = Union[pd.DataFrame, pd.Series]
 # Wrappers for attribute, item and operator access
 class ClosureBase:
     """Base class for wrapping attribute, item or operator/method access closures."""
+    _cmp_keys: Tuple[str] = ("name",)
     def __init__(self, name: str):
         """
         Parameters
@@ -49,6 +50,9 @@ class ClosureBase:
     def as_node(self, parent=None):
         """Return an AST node."""
         return AstNode(self, parent=parent)
+
+    def _cmp_values(self):
+        return tuple(getattr(self, k) for k in self._cmp_keys)
 
 
 class AttributeClosure(ClosureBase):
@@ -130,6 +134,7 @@ class MethodClosure(ClosureBase):
         DF["x"].clip(DF["y"].min())
         DF["x"].clip(upper=DF["y"].min())
     """
+    _cmp_keys = ("name", "args", "kwargs")
     def __init__(self, name: str, factory_cls: type, *args: Any, **kwargs: Any):
         """
         Parameters
