@@ -3,7 +3,9 @@
 
 unary_ops = (
         "abs",
-        "bool",
+        # __bool__ is manually implemented to allow comparing for expression
+        # equality like DF["a"] == DF["b"]
+        # "bool",
         "invert",
         "neg",
         "not",
