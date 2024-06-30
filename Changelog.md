@@ -1,6 +1,10 @@
 # Unreleased (YYYY-MM-DD)
 
 - Add support for dask dataframes
+- Fix using ``S`` in
+  ```python
+  df.groupby(...)[col].agg(S. ...)
+  ```
 
 # 1.5.0 (2024-04-17)
 
