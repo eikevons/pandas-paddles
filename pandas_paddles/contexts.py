@@ -197,7 +197,10 @@ class ClosureFactoryBase:
         if op not in {"eq", "ne", "le", "lt", "ge", "gt"}:
             return True
         if op in {"ge", "gt", "le", "lt"}:
-            warn("Evaluating context expression directly as boolean with <, <=, >, >=. Are you sure you intend this?", stacklevel=1)
+            warn(
+                "Evaluating context expression directly as boolean with <, <=, >, >=. Are you sure you intend this?",
+                stacklevel=2,
+            )
 
         left = self._closures[:-1]
         right_expr = cl.args[0]
