@@ -12,6 +12,8 @@ methods to access columns, methods, and attributes of the calling data frame
 :attr:`~pandas.DataFrame.loc` with ``C``. This allows to write chains of
 operations much more concisely. See `Comparison`_ below.
 
+Highlights:
+
 * ``DF`` and ``S`` give you access to all data frame/series attributes where
   Pandas allows to pass a callback to handle the contextual object. (See
   `DataFrame examples`_ and `Series examples`_)
@@ -21,16 +23,21 @@ operations much more concisely. See `Comparison`_ below.
 * ``I`` can be used to simplify row selection in
   :attr:`~pandas.DataFrame.loc` by row label. (See `Column or index
   selection`_)
-* :func:`~pandas_paddles.pipe.report` can be used to inspect the dataframe in a chain
-  of operations.
+* :func:`~pandas_paddles.pipe.report` can be used to inspect the dataframe
+  in a chain of operations.
 * :mod:`~pandas_paddles.paddles` contains useful helper functions, e.g.
   :func:`~pandas_paddles.paddles.str_join` to join multiple columns into a
   string.
+* ``DF`` and ``S`` also support ``dask`` data frames when
+  ``dask[dataframe]`` is installed.
 
 DataFrame examples
 ~~~~~~~~~~~~~~~~~~
 
-See full documentation at :class:`~pandas_paddles.contexts.DataframeContext`.
+See full documentation at
+:class:`~pandas_paddles.pandas.PandasDataframeContext`. All examples also
+work with dask data frames as long as the underlying Pandas-methods are
+supported.
 
 Filter rows with :attr:`~pandas.DataFrame.loc`::
 
@@ -113,7 +120,10 @@ or with keyword arguments::
 Series examples
 ~~~~~~~~~~~~~~~
 
-See full documentation at :class:`~pandas_paddles.contexts.SeriesContext`.
+See full documentation at
+:class:`~pandas_paddles.pandas.PandasSeriesContext`. All examples also work
+with dask series as long as the underlying Pandas-methods are supported.
+
 
 Select subset of series matching predicate::
 

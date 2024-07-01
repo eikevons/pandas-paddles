@@ -31,12 +31,13 @@ API
    :recursive:
    :template: custom-module-template.rst
 
-   pandas_paddles.contexts
-   pandas_paddles.closures
    pandas_paddles.axis
-   pandas_paddles.pipe
+   pandas_paddles.closures
+   pandas_paddles.contexts
+   pandas_paddles.dask
    pandas_paddles.paddles
-
+   pandas_paddles.pandas
+   pandas_paddles.pipe
 
 Indices and tables
 ==================

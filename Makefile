@@ -1,6 +1,7 @@
 PACKAGE_NAME :=  pandas_paddles
 IMAGE_BASE := $(PACKAGE_NAME)-test
-TOX_ARGS := --workdir /tmp/tox
+TOX_DIR := /tmp/tox
+TOX_ARGS := --workdir $(TOX_DIR)
 
 WORKDIR := /project
 
@@ -17,13 +18,14 @@ export DOCKER_BUILDKIT
 help:
 	@echo "Provided targets"
 	@echo "tests     run all unit tests against all Python versions"
+	@echo "docs      create documentation."
+	@echo "shell     start shell in latest python image"
 	@echo "tests-X.Y run unit tests agains Python version X.Y"
 	@echo "shell-X.Y start shell in test-image for Python version X.Y"
 	@echo "image-X.Y build test-image for Python version X.Y"
 	@echo "TODO:"
 	@echo "watch      run unit tests on every change. Use make TESTS=... to filter tests"
 	@echo "mypy       run mypy on package"
-	@echo "docs       create documentation."
 	@echo "format"
 	@echo "wheel"
 
@@ -54,21 +56,13 @@ $(IMAGE_BASE)-%.stamp: docker/Dockerfile
 	mkdir -p .tox
 
 
-Xtests-3.10: image-3.10 | .tox
-	docker run --rm \
-	   --user $(shell id -u):$(shell id -g) \
-	    --volume "$(PWD):$(WORKDIR):ro" \
-	    --volume "$(PWD)/.tox:/tmp/tox" \
-	    $(IMAGE_BASE):3.10 \
-	    sh -c "tox $(TOX_ARGS)"
-
 tests: tests-3.8 tests-3.9 tests-3.10 tests-3.11 tests-3.12
 
 tests-%: image-% | .tox
 	docker run --rm \
 	   --user $(shell id -u):$(shell id -g) \
 	    --volume "$(PWD):$(WORKDIR):ro" \
-	    --volume "$(PWD)/.tox:/tmp/tox" \
+	    --volume "$(PWD)/.tox:$(TOX_DIR)" \
 	    $(IMAGE_BASE):$* \
 	    tox $(TOX_ARGS)
 
@@ -76,10 +70,26 @@ shell-%: image-% | .tox
 	docker run --rm \
 	   --user $(shell id -u):$(shell id -g) \
 	    --volume "$(PWD):$(WORKDIR):ro" \
-	    --volume "$(PWD)/.tox:/tmp/tox" \
+	    --volume "$(PWD)/docs/source/api/:$(WORKDIR)/docs/source/api/" \
+	    --volume "$(PWD)/docs/build/:$(WORKDIR)/docs/build/" \
+	    --volume "$(PWD)/.tox:$(TOX_DIR)" \
 	    -ti \
 	    $(IMAGE_BASE):$* \
 	    bash
+
+shell: shell-3.12
+
+docs: image-3.12 | .tox
+	@mkdir -p docs/build/ docs/source/api
+	docker run --rm \
+	   --user $(shell id -u):$(shell id -g) \
+	    --volume "$(PWD):$(WORKDIR):ro" \
+	    --volume "$(PWD)/docs/source/api/:$(WORKDIR)/docs/source/api/" \
+	    --volume "$(PWD)/docs/build/:$(WORKDIR)/docs/build/" \
+	    --volume "$(PWD)/.tox:$(TOX_DIR)" \
+	    -ti \
+	    $(IMAGE_BASE):3.12 \
+	    tox $(TOX_ARGS) -e docs r
 
 # # Interactive targets
 # shell: image
@@ -89,24 +99,6 @@ shell-%: image-% | .tox
 # 	    --env "HOME=/tmp/home" \
 # 	    --user "$(shell id -u):$(shell id -g)" \
 # 	    $(IMAGE_NAME) bash
-
-# test: image
-# 	docker run --rm -ti \
-# 	    --name $(IMAGE_NAME)-$@ \
-# 	    --volume "$(PWD):$(WORKDIR):ro" \
-# 	    --env "HOME=/tmp/home" \
-# 	    -w /tmp/home \
-# 	    $(IMAGE_NAME) \
-# 	    python -m pytest $(PYTEST_ARGS)
-
-# watch: image
-# 	docker run --rm -ti \
-# 	    --name $(IMAGE_NAME)-$@ \
-# 	    --volume "$(PWD):$(WORKDIR):ro" \
-# 	    --env "HOME=/tmp/home" \
-# 	    -w /tmp/home \
-# 	    $(IMAGE_NAME) \
-# 	    pytest-watch $(WORKDIR)/$(PACKAGE_NAME) $(WORKDIR)/tests -- $(PYTEST_ARGS)
 
 # mypy: image
 # 	docker run --rm -ti \

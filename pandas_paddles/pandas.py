@@ -107,7 +107,7 @@ class PandasSeriesContext(ClosureFactoryBase):
         # 2    2
         # dtype: int64
 
-    Aggregating a single ``groupby``ed column with
+    Aggregating a single column after ``groupby`` with
     ``groupby(...)[col].agg()``::
 
         df = pd.DataFrame({

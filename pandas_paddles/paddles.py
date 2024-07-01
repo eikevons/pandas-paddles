@@ -161,7 +161,8 @@ def build_filter(
 ) -> PandasDataframeContext:
     """Build a filter expression from column-value pairs
 
-    ::
+    .. code::
+
         df.loc[build_filter({"a": "A", "b": "B"})
 
     is equivalent to::
