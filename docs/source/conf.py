@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.abspath("../.."))
 
 project = "Pandas Paddles"
 author = "Eike von Seggern"
-copyright = f"2021, {author}"
+copyright = f"2021-2025, {author}"
 
 # The short X.Y version
 import pandas_paddles
@@ -84,10 +84,6 @@ intersphinx_mapping = {
 # https://pydata-sphinx-theme.readthedocs.io/en/latest/user_guide/configuring.html#adding-ethical-advertisements-to-your-sidebar-in-readthedocs
 html_sidebars = {
     "**": ["search-field.html", "sidebar-nav-bs.html", "sidebar-ethical-ads.html"]
-}
-
-html_theme_options = {
-    "footer_items": ["footer-version", "copyright", "sphinx-version"],
 }
 
 # Allow Jinja templating in source rst files.
