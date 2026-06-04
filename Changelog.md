@@ -5,6 +5,8 @@
   ```python
   df.groupby(...)[col].agg(S. ...)
   ```
+- Drop Python 3.7, 3.8, 3.9 (EOL); add Python 3.13 to test matrix.
+- Drop pandas 1.x and 2.0; add pandas 2.3; raise supported range to `>=2.1,<4`.
 
 # 1.5.0 (2024-04-17)
 

@@ -2,10 +2,7 @@
 import operator
 from typing import Any, Callable, Optional, Sequence
 import typing
-try:
-    from typing import Literal
-except ImportError:
-    from typing_extensions import Literal
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -307,7 +304,7 @@ class DtypesOp(BaseOp):
             for typ in (str, bytes):
                 if dtype in (typ, typ.__name__):
                     mask |= (df.sample(min(len(df), self.sample_size))
-                            .applymap(lambda i: isinstance(i, typ))
+                            .map(lambda i: isinstance(i, typ))
                             .agg("all")
                             .values
                            )
